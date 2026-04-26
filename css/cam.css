@@ -1,0 +1,423 @@
+/* ══════════════════════════════════════════
+   cam.css — Kamera-Screens (mark + nav + home-nav)
+   Inkl. MARK-Step-Overlays + Zentralen Nav-Button
+   ══════════════════════════════════════════ */
+
+/* ── CAM base ──────────────────────────── */
+.cam-scr {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: #000;
+}
+.cam-scr.on { display: block; }
+.cam-scr video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transform-origin: center center;
+  transition: transform 0.15s;
+}
+.cam-scr .vid-wrap {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.cam-topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  padding: max(env(safe-area-inset-top, 44px), 44px) 16px 14px;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.75), transparent);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.btn-back {
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 15px;
+  letter-spacing: 1px;
+  padding: 9px 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.cam-title {
+  font-size: 12px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+  flex: 1;
+  text-align: center;
+}
+.cam-gps {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 6px 10px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  flex-shrink: 0;
+}
+.cam-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  padding: 60px 20px env(safe-area-inset-bottom, 24px);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.88) 60%, transparent);
+}
+
+/* ── MARK SCREEN ───────────────────────── */
+#crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90px;
+  height: 90px;
+  pointer-events: none;
+  z-index: 15;
+}
+#crosshair svg { width: 100%; height: 100%; }
+
+/* Step overlay */
+#mark-step1, #mark-step2 {
+  position: absolute;
+  inset: 0;
+  z-index: 18;
+  display: flex;
+  flex-direction: column;
+}
+#mark-step2 { display: none; }
+
+.sensor-strip {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.s-chip {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.62);
+  border: 1px solid rgba(201, 162, 39, 0.25);
+  border-radius: 6px;
+  padding: 8px 10px;
+  text-align: center;
+  backdrop-filter: blur(4px);
+}
+.s-chip .sc-l {
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 3px;
+}
+.s-chip .sc-v {
+  font-family: var(--mono);
+  font-size: 20px;
+  color: var(--accent2);
+}
+.s-chip .sc-v.bad {
+  color: var(--dim);
+  font-size: 13px;
+}
+
+/* Step 1 button */
+.btn-aim {
+  width: 100%;
+  padding: 17px;
+  background: var(--adim);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  color: var(--bright);
+  font-family: var(--sans);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.btn-aim:active { opacity: 0.8; }
+
+/* Step 2 – distance input */
+.step2-card {
+  background: rgba(0, 0, 0, 0.75);
+  border: 1px solid rgba(201, 162, 39, 0.35);
+  border-radius: 10px;
+  padding: 20px;
+  backdrop-filter: blur(8px);
+  margin-bottom: 12px;
+}
+.step2-title {
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 14px;
+}
+.dist-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.dist-label {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
+}
+.dist-inp {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(201, 162, 39, 0.4);
+  border-radius: 6px;
+  color: var(--bright);
+  font-family: var(--mono);
+  font-size: 30px;
+  padding: 10px 14px;
+  text-align: right;
+  outline: none;
+  -webkit-appearance: none;
+  min-width: 0;
+}
+.dist-inp:focus { border-color: var(--accent); }
+.dist-unit {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 2px;
+}
+.snap-info {
+  font-size: 12px;
+  color: var(--dim);
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+.snap-val {
+  color: var(--accent);
+  font-family: var(--mono);
+}
+.btn-confirm {
+  width: 100%;
+  padding: 16px;
+  background: var(--adim);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  color: var(--bright);
+  font-family: var(--sans);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.btn-confirm:active { opacity: 0.8; }
+.btn-redo {
+  width: 100%;
+  padding: 11px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--dim);
+  font-family: var(--sans);
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+/* ── NAV / AR SCREEN ───────────────────── */
+
+/* Location pin AR marker (mark-nav) */
+#ar-dot {
+  display: none;
+  position: absolute;
+  z-index: 15;
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+  transition: width 0.3s, height 0.3s;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.6))
+          drop-shadow(0 0 20px rgba(201, 162, 39, 0.5));
+}
+#ar-dot svg { width: 100%; height: 100%; }
+@keyframes pinBounce {
+  0%, 100% { transform: translate(-50%, -100%) translateY(0); }
+  50%      { transform: translate(-50%, -100%) translateY(-8px); }
+}
+#ar-dot.bounce { animation: pinBounce 1.2s ease-in-out infinite; }
+
+/* Edge arrow – shown when target off-screen */
+#edge-arrow {
+  display: none;
+  position: absolute;
+  z-index: 16;
+  pointer-events: none;
+  width: 44px;
+  height: 44px;
+  transform-origin: center center;
+}
+#edge-arrow svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 6px rgba(201, 162, 39, 0.8));
+}
+
+/* Center direction arrow (when off screen) */
+#dir-arrow {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(0deg);
+  z-index: 15;
+  pointer-events: none;
+  transition: transform 0.35s ease;
+  filter: drop-shadow(0 0 16px rgba(201, 162, 39, 0.7));
+}
+#dir-arrow svg {
+  width: 72px;
+  height: 72px;
+  opacity: 0.7;
+}
+
+/* Nav stats */
+.nav-stats {
+  position: absolute;
+  z-index: 20;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding-top: calc(env(safe-area-inset-top, 14px) + 62px);
+  padding-left: 16px;
+  padding-right: 16px;
+  display: flex;
+  gap: 8px;
+}
+.nstat {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(201, 162, 39, 0.2);
+  border-radius: 6px;
+  padding: 7px 10px;
+  text-align: center;
+  backdrop-filter: blur(4px);
+}
+.nstat .nl {
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 2px;
+}
+.nstat .nv {
+  font-family: var(--mono);
+  font-size: 16px;
+  color: var(--bright);
+}
+.nstat .nv.close { color: var(--accent); }
+
+.arrived-msg {
+  display: none;
+  text-align: center;
+  margin-bottom: 16px;
+}
+.arrived-msg.show { display: block; }
+.arr-big {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  color: var(--accent);
+  font-family: var(--serif);
+}
+.arr-sub {
+  font-size: 11px;
+  color: var(--dim);
+  letter-spacing: 2px;
+  margin-top: 4px;
+}
+
+/* Alarm stop button */
+#btn-stop-alarm {
+  display: none;
+  width: 100%;
+  margin-top: 14px;
+  padding: 18px;
+  background: #b83030;
+  border: 2px solid #e05050;
+  border-radius: 10px;
+  color: #fff;
+  font-family: var(--sans);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  cursor: pointer;
+  animation: alarmPulse 0.8s ease-in-out infinite;
+}
+@keyframes alarmPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(184, 48, 48, 0.8); }
+  50%      { box-shadow: 0 0 24px rgba(184, 48, 48, 0.9),
+                          0 0 48px rgba(184, 48, 48, 0.4); }
+}
+
+/* ── CENTRAL NAV BUTTON ────────────────── */
+#btn-central-nav {
+  position: absolute;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--adim) 100%);
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 24px rgba(201, 162, 39, 0.5),
+              0 0 0 0 rgba(201, 162, 39, 0.4);
+  cursor: pointer;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  transition: transform 0.15s;
+}
+#btn-central-nav.visible { display: flex; }
+#btn-central-nav.has-targets {
+  animation: navPulse 2.5s ease-in-out infinite;
+}
+@keyframes navPulse {
+  0%, 100% { box-shadow: 0 4px 24px rgba(201, 162, 39, 0.5),
+                          0 0 0 0 rgba(201, 162, 39, 0.4); }
+  50%      { box-shadow: 0 4px 24px rgba(201, 162, 39, 0.7),
+                          0 0 0 12px rgba(201, 162, 39, 0); }
+}
+#btn-central-nav:active { transform: translateX(-50%) scale(0.93); }
+.nav-btn-icon {
+  font-size: 26px;
+  line-height: 1;
+}
+.nav-btn-count {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.8);
+  letter-spacing: 1px;
+}

@@ -1,0 +1,122 @@
+/* ══════════════════════════════════════════
+   splash.css — Splashscreen beim App-Start
+   ══════════════════════════════════════════ */
+
+#s-splash {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: #f0ede0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 40px env(safe-area-inset-bottom, 30px);
+  cursor: pointer;
+}
+#s-splash.on { display: flex; }
+
+.splash-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  width: 100%;
+  gap: 0;
+  position: relative;
+}
+
+/* pin + dashed line + dog container */
+.splash-art {
+  position: relative;
+  width: 240px;
+  height: 580px;
+  flex-shrink: 0;
+}
+
+/* Pin at top */
+.splash-pin {
+  position: absolute;
+  top: 0;
+  left: 62%;
+  transform: translateX(-50%);
+  animation: pinFloat 2.8s ease-in-out infinite;
+}
+#pinImg {
+  transition: opacity 0.5s ease;
+}
+#pinImg.fading { opacity: 0; }
+
+/* Dashed line */
+.splash-line {
+  position: absolute;
+  top: 88px;
+  left: 62%;
+  transform: translateX(-50%);
+}
+
+/* Dog SVG */
+.splash-dog {
+  position: absolute;
+  bottom: 0;
+  left: 44%;
+  transform: translateX(-50%);
+  animation: dogBreath 3s ease-in-out infinite;
+  mix-blend-mode: multiply;
+  z-index: 1;
+}
+@keyframes dogBreath {
+  0%, 100% { transform: translateX(-50%) scale(1); }
+  50%      { transform: translateX(-50%) scale(1.02); }
+}
+
+/* Logo block */
+.splash-logo-block {
+  position: absolute;
+  top: 420px;
+  left: -90px;
+  width: 140px;
+  z-index: 2;
+}
+.splash-logo {
+  font-family: var(--serif);
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--olive);
+  letter-spacing: 3px;
+  line-height: 1;
+}
+.splash-tagline {
+  font-size: 12px;
+  color: var(--accent);
+  font-style: italic;
+  letter-spacing: 1px;
+  margin-top: 4px;
+  white-space: nowrap;
+}
+
+/* tap hint */
+.splash-hint {
+  margin-top: 20px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(74, 94, 26, 0.4);
+  animation: hintPulse 2s ease-in-out infinite;
+}
+@keyframes hintPulse {
+  0%, 100% { opacity: 0.4; }
+  50%      { opacity: 1; }
+}
+
+/* fade out animation */
+@keyframes splashFade {
+  0%   { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.04); }
+}
+#s-splash.leaving {
+  animation: splashFade 0.45s ease-out forwards;
+  pointer-events: none;
+}

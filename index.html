@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#111408">
+<title>h.o.u.n.d.</title>
+
+<!-- PWA Manifest + Homescreen-Icons -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/icons/pin-generic.png">
+
+<!-- Leaflet via CDN (wird beim ersten Besuch vom Service Worker gecacht) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+
+<!-- Eigene Styles, modular -->
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/splash.css">
+<link rel="stylesheet" href="css/menu.css">
+<link rel="stylesheet" href="css/home.css">
+<link rel="stylesheet" href="css/cam.css">
+</head>
+<body>
+
+<!-- ══ SPLASH SCREEN ══════════════════════ -->
+<div id="s-splash" class="on" onclick="leaveSplash()">
+  <div class="splash-inner">
+    <div class="splash-art">
+
+      <!-- Pin Carousel -->
+      <div class="splash-pin" id="pinCarousel">
+        <img id="pinImg" src="assets/icons/pin-generic.png" style="width:90px;height:auto;display:block;">
+      </div>
+
+      <!-- Dashed line -->
+      <div class="splash-line">
+        <svg width="90" height="215" viewBox="0 0 90 215" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M 68 0 C 75 50, 12 80, 10 130 C 8 170, 62 188, 56 210"
+                fill="none" stroke="#3a4a14" stroke-width="2.5" stroke-dasharray="9 7"
+                stroke-linecap="round" opacity="0.55"/>
+        </svg>
+      </div>
+
+      <!-- Logo -->
+      <div class="splash-logo-block">
+        <div class="splash-logo">h.o.u.n.d.</div>
+        <div class="splash-tagline">find what's important...</div>
+      </div>
+
+      <!-- Dog illustration -->
+      <div class="splash-dog">
+        <img src="assets/icons/splash-dog.png"
+             style="width:200px; height:auto; display:block;"
+             alt="hound dog">
+      </div>
+    </div>
+  </div>
+  <div class="splash-hint">· tippen zum starten ·</div>
+</div>
+
+<!-- ══ MAIN MENU (4 Rubriken) ═════════════ -->
+<div id="s-main" class="on">
+  <div class="main-header">
+    <div class="main-logo">h.o.u.n.d.</div>
+    <div class="main-tagline">find what's important...</div>
+    <div class="gps-pill" style="margin:0;">
+      <div class="gps-dot" id="gpsD0"></div>
+      <span id="gpsT0" style="font-family:var(--mono)">GPS…</span>
+    </div>
+  </div>
+  <div class="rubrik-grid">
+    <button class="rubrik-card r-home active-rubrik" onclick="goRubrik('home')">
+      <div class="card-pin-wrap" id="homePinWrap" style="z-index:5;">
+        <img src="assets/icons/hochsitz.png" id="homePinA" style="opacity:1;">
+        <img src="assets/icons/auto.png"     id="homePinB" class="pin-b" style="opacity:0;transition:opacity 0.6s ease;">
+      </div>
+      <div class="r-name">home</div>
+      <div class="r-desc">Markiere Deinen Standort und lass dich zurück führen.</div>
+      <div class="r-soon">coming soon</div>
+    </button>
+    <button class="rubrik-card r-mark active-rubrik" onclick="goRubrik('mark')">
+      <img class="card-pin" style="opacity:1;z-index:3;top:35%;" src="assets/icons/anschuss.png">
+      <div class="r-name">mark</div>
+      <div class="r-desc">Markiere vor dem Schuss dein Ziel und lass dich zum Anschuss führen.</div>
+      <div class="r-badge" id="markBadgeMain"></div>
+    </button>
+    <button class="rubrik-card r-track" onclick="goRubrik('track')">
+      <img class="card-pin" src="assets/icons/track.png">
+      <div class="r-name">track</div>
+      <div class="r-desc">Folge Schweisspuren. AR zeigt dir die Fluchtrichtung.</div>
+      <div class="r-soon">coming soon</div>
+    </button>
+    <button class="rubrik-card r-wolfpack" onclick="goRubrik('wolfpack')">
+      <img class="card-pin" src="assets/icons/wolfpack.png">
+      <div class="r-name">wolfpack</div>
+      <div class="r-desc">Gemeinsam jagen. Ziele teilen. Strategie planen.</div>
+      <div class="r-soon">coming soon</div>
+    </button>
+  </div>
+
+  <!-- Zentraler Navigations-Button über den 4 Karten -->
+  <button id="btn-central-nav" onclick="goGlobalNav()">
+    <span class="nav-btn-icon">🧭</span>
+    <span class="nav-btn-count" id="navBtnCount">0</span>
+  </button>
+</div>
+
+<!-- ══ HOME SUBMENU ══════════════════════ -->
+<div id="s-home">
+  <div class="sub-header">
+    <button class="btn-sub-back" onclick="goMainMenu()">← h.o.u.n.d.</button>
+    <div class="sub-title">home</div>
+    <div class="gps-pill">
+      <div class="gps-dot" id="gpsD0b"></div>
+      <span id="gpsT0b" style="font-family:var(--mono)">GPS…</span>
+    </div>
+  </div>
+  <div class="sub-body">
+    <div class="menu">
+
+      <button class="menu-card primary" onclick="markStandort()">
+        <div class="card-bar"></div>
+        <div class="card-body">
+          <div class="card-label">Schritt 1</div>
+          <div class="card-title">Standort markieren</div>
+          <div class="card-desc">GPS Standort speichern · Hochsitz oder Auto</div>
+        </div>
+        <div class="card-icon" style="font-size:22px;">📍</div>
+      </button>
+
+      <div class="saved-locations" id="savedLocations">
+        <div class="saved-item" id="savedHochsitz" style="display:none;">
+          <img src="assets/icons/hochsitz.png" style="width:36px;height:auto;">
+          <div class="saved-info">
+            <div class="saved-name">Hochsitz</div>
+            <div class="saved-dist" id="distHochsitz">—</div>
+          </div>
+          <button class="saved-del" onclick="deleteStandort('hochsitz')">✕</button>
+        </div>
+        <div class="saved-item" id="savedAuto" style="display:none;">
+          <img src="assets/icons/auto.png" style="width:36px;height:auto;">
+          <div class="saved-info">
+            <div class="saved-name">Auto</div>
+            <div class="saved-dist" id="distAuto">—</div>
+          </div>
+          <button class="saved-del" onclick="deleteStandort('auto')">✕</button>
+        </div>
+      </div>
+
+    </div>
+    <div class="perm-note">Beim ersten Start: Kamera, GPS &amp; Sensoren erlauben.<br>Nur über <strong>https://</strong> öffnen.</div>
+  </div>
+</div>
+
+<!-- ══ HOME TYPE PICKER (Modal) ══════════ -->
+<div id="s-type-picker" style="display:none;position:fixed;inset:0;z-index:50;background:rgba(10,14,4,0.92);flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:40px;">
+  <div style="font-family:var(--serif);font-size:22px;color:var(--bright);letter-spacing:2px;margin-bottom:8px;">Was möchtest du markieren?</div>
+  <button class="type-pick-btn" onclick="saveStandort('hochsitz')">
+    <img src="assets/icons/hochsitz.png" style="width:70px;height:auto;">
+    <span>Hochsitz</span>
+  </button>
+  <button class="type-pick-btn" onclick="saveStandort('auto')">
+    <img src="assets/icons/auto.png" style="width:70px;height:auto;">
+    <span>Auto</span>
+  </button>
+  <button onclick="closeTypePicker()" style="margin-top:8px;background:transparent;border:1px solid var(--border);border-radius:6px;padding:10px 24px;color:var(--dim);font-family:var(--sans);font-size:14px;letter-spacing:2px;cursor:pointer;">Abbrechen</button>
+</div>
+
+<!-- ══ MARK SUBMENU ═══════════════════════ -->
+<div id="s-mark-menu">
+  <div class="sub-header">
+    <button class="btn-sub-back" onclick="goMainMenu()">← h.o.u.n.d.</button>
+    <div class="sub-title">mark</div>
+    <div class="gps-pill">
+      <div class="gps-dot" id="gpsD0c"></div>
+      <span id="gpsT0c" style="font-family:var(--mono)">GPS…</span>
+    </div>
+  </div>
+  <div class="sub-body">
+    <div class="menu">
+      <button class="menu-card primary" onclick="goMark()">
+        <div class="card-bar"></div>
+        <div class="card-body">
+          <div class="card-label">Schritt 1</div>
+          <div class="card-title">Anschuss markieren</div>
+          <div class="card-desc">Ziel einrahmen · Entfernung eingeben</div>
+        </div>
+        <div class="card-icon">🎯</div>
+      </button>
+      <div class="marked-badge" id="markedBadge" style="display:none;font-family:var(--mono);font-size:12px;color:var(--accent);padding:8px 0;letter-spacing:1px;">✓ Anschuss gespeichert – nutze den Navigationsbutton</div>
+    </div>
+    <div class="perm-note">Beim ersten Start: Kamera, GPS &amp; Sensoren erlauben.<br>Nur über <strong>https://</strong> öffnen.</div>
+  </div>
+</div>
+
+<!-- ══ HOME NAV SCREEN ═══════════════════ -->
+<div id="s-home-nav" class="cam-scr">
+  <video id="vid-home-nav" autoplay playsinline muted webkit-playsinline></video>
+
+  <!-- Hochsitz AR pin -->
+  <div id="ar-hochsitz" style="display:none;position:absolute;z-index:15;transform:translate(-50%,-100%);pointer-events:auto;cursor:pointer;" onclick="selectHomeTarget('hochsitz')">
+    <img src="assets/icons/hochsitz.png" style="width:70px;height:auto;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.5));animation:pinFloat 2.8s ease-in-out infinite;">
+    <div class="ar-home-label" id="labelHochsitz">Hochsitz</div>
+  </div>
+
+  <!-- Auto AR pin -->
+  <div id="ar-auto" style="display:none;position:absolute;z-index:15;transform:translate(-50%,-100%);pointer-events:auto;cursor:pointer;" onclick="selectHomeTarget('auto')">
+    <img src="assets/icons/auto.png" style="width:70px;height:auto;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.5));animation:pinFloat 2.8s ease-in-out infinite;animation-delay:0.4s;">
+    <div class="ar-home-label" id="labelAuto">Auto</div>
+  </div>
+
+  <!-- Anschuss AR pin (global nav) -->
+  <div id="ar-anschuss" style="display:none;position:absolute;z-index:15;transform:translate(-50%,-100%);pointer-events:auto;cursor:pointer;" onclick="selectHomeTarget('anschuss')">
+    <img src="assets/icons/anschuss.png" style="width:70px;height:auto;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.5));animation:pinFloat 2.8s ease-in-out infinite;animation-delay:0.8s;">
+    <div class="ar-home-label" id="labelAnschuss">Anschuss</div>
+  </div>
+
+  <!-- Edge-Pfeile -->
+  <div id="edge-anschuss" style="display:none;position:absolute;z-index:16;pointer-events:none;width:44px;height:44px;">
+    <svg viewBox="0 0 44 44" fill="none"><polygon points="22,4 38,40 22,30 6,40" fill="rgba(201,162,39,0.9)" stroke="#c9a227" stroke-width="1.5" stroke-linejoin="round"/></svg>
+  </div>
+  <div id="edge-hochsitz" style="display:none;position:absolute;z-index:16;pointer-events:none;width:44px;height:44px;">
+    <svg viewBox="0 0 44 44" fill="none"><polygon points="22,4 38,40 22,30 6,40" fill="rgba(201,162,39,0.9)" stroke="#c9a227" stroke-width="1.5" stroke-linejoin="round"/></svg>
+  </div>
+  <div id="edge-auto" style="display:none;position:absolute;z-index:16;pointer-events:none;width:44px;height:44px;">
+    <svg viewBox="0 0 44 44" fill="none"><polygon points="22,4 38,40 22,30 6,40" fill="rgba(201,162,39,0.9)" stroke="#c9a227" stroke-width="1.5" stroke-linejoin="round"/></svg>
+  </div>
+
+  <!-- Map layer -->
+  <div id="home-map" style="display:none;position:absolute;inset:0;z-index:12;"></div>
+
+  <div class="cam-topbar" style="z-index:20;">
+    <button class="btn-back" onclick="goHomeBack()">← home</button>
+    <span class="cam-title" id="homeNavTitle">Tippe ein Ziel an</span>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button id="btnToggleMap" onclick="toggleHomeMap()" style="
+        background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.2);
+        border-radius:6px;color:var(--bright);font-family:var(--mono);
+        font-size:11px;letter-spacing:1px;padding:7px 11px;cursor:pointer;">
+        🗺 Karte
+      </button>
+      <div class="cam-gps">
+        <div class="gps-dot" id="gpsD4"></div>
+        <span id="gpsT4">GPS…</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-stats" id="homeNavStats" style="display:none;">
+    <div class="nstat"><div class="nl">Entfernung</div><div class="nv" id="hDist">—</div></div>
+    <div class="nstat"><div class="nl">Kurs</div><div class="nv" id="hBear">—°</div></div>
+    <div class="nstat"><div class="nl">Höhe ±</div><div class="nv" id="hAlt">—m</div></div>
+  </div>
+
+  <div class="cam-bottom">
+    <div class="arrived-msg" id="homeArrivedMsg">
+      <div class="arr-big">✓ ZIEL ERREICHT</div>
+      <div class="arr-sub">Standort in &lt; 8 Meter</div>
+    </div>
+    <button id="btn-stop-home-alarm" style="display:none;width:100%;margin-top:10px;padding:18px;background:#b83030;border:2px solid #e05050;border-radius:10px;color:#fff;font-family:var(--sans);font-size:20px;font-weight:700;letter-spacing:3px;text-transform:uppercase;cursor:pointer;animation:alarmPulse 0.8s ease-in-out infinite;" onclick="stopHomeAlarm()">⬛ Gefunden – Alarm stoppen</button>
+    <button class="btn-back" style="width:100%;margin-top:10px;" onclick="goHomeBack()">← Zurück</button>
+  </div>
+</div>
+
+<!-- ══ MARK SCREEN ════════════════════════ -->
+<div id="s-mark" class="cam-scr">
+  <div class="vid-wrap"><video id="vid-mark" autoplay playsinline muted webkit-playsinline></video></div>
+
+  <!-- Fadenkreuz -->
+  <div id="crosshair">
+    <svg viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="45" cy="45" r="40" stroke="rgba(201,162,39,0.35)" stroke-width="1"/>
+      <circle cx="45" cy="45" r="7"  stroke="#c9a227" stroke-width="1.5"/>
+      <line x1="45" y1="5"  x2="45" y2="34" stroke="#c9a227" stroke-width="1.5"/>
+      <line x1="45" y1="56" x2="45" y2="85" stroke="#c9a227" stroke-width="1.5"/>
+      <line x1="5"  y1="45" x2="34" y2="45" stroke="#c9a227" stroke-width="1.5"/>
+      <line x1="56" y1="45" x2="85" y2="45" stroke="#c9a227" stroke-width="1.5"/>
+      <polyline points="16,16 16,24 24,16" stroke="rgba(201,162,39,0.5)" stroke-width="1.5" fill="none"/>
+      <polyline points="74,16 74,24 66,16" stroke="rgba(201,162,39,0.5)" stroke-width="1.5" fill="none"/>
+      <polyline points="16,74 16,66 24,74" stroke="rgba(201,162,39,0.5)" stroke-width="1.5" fill="none"/>
+      <polyline points="74,74 74,66 66,74" stroke="rgba(201,162,39,0.5)" stroke-width="1.5" fill="none"/>
+    </svg>
+  </div>
+
+  <div class="cam-topbar">
+    <button class="btn-back" onclick="goHome()">← Menü</button>
+    <span class="cam-title" id="markTitle">Ziel einrahmen</span>
+    <div class="cam-gps">
+      <div class="gps-dot" id="gpsD1"></div>
+      <span id="gpsT1">GPS…</span>
+    </div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div id="mark-step1">
+    <div style="flex:1;"></div>
+    <div class="cam-bottom" style="position:relative;padding-top:0;">
+      <div class="sensor-strip">
+        <div class="s-chip"><div class="sc-l">Neigung</div><div class="sc-v" id="mTilt">—°</div></div>
+        <div class="s-chip"><div class="sc-l">Richtung</div><div class="sc-v" id="mHead">—°</div></div>
+        <div class="s-chip"><div class="sc-l">GPS ±</div><div class="sc-v" id="mAcc">—</div></div>
+      </div>
+      <button class="btn-aim" onclick="snapAim()">
+        ◎ &nbsp; Ziel erfassen
+      </button>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div id="mark-step2">
+    <div style="flex:1;"></div>
+    <div class="cam-bottom" style="position:relative;padding-top:0;">
+      <div class="step2-card">
+        <div class="step2-title">Entfernung eingeben</div>
+        <div class="snap-info">
+          Richtung: <span class="snap-val" id="snapHead">—°</span> &nbsp;·&nbsp;
+          Neigung: <span class="snap-val" id="snapTilt">—°</span>
+        </div>
+        <div class="dist-row">
+          <span class="dist-label">Entfernung</span>
+          <input class="dist-inp" type="number" id="distInp" placeholder="0" min="1" max="999" inputmode="decimal">
+          <span class="dist-unit">m</span>
+        </div>
+        <button class="btn-confirm" onclick="doMark()">✓ &nbsp; Anschuss speichern</button>
+      </div>
+      <button class="btn-redo" onclick="redoAim()">↩ Nochmal zielen</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ NAV SCREEN (Mark-Nav) ═════════════ -->
+<div id="s-nav" class="cam-scr">
+  <div class="vid-wrap"><video id="vid-nav" autoplay playsinline muted webkit-playsinline></video></div>
+
+  <div id="ar-dot" style="display:none;position:absolute;z-index:15;transform:translate(-50%,-100%);pointer-events:none;transition:width 0.3s,height 0.3s;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.6));">
+    <img src="assets/icons/anschuss.png" style="width:70px;height:auto;display:block;">
+    <div style="text-align:center;margin-top:2px;background:rgba(0,0,0,0.65);color:#fff;font-size:10px;padding:1px 5px;border-radius:3px;font-family:monospace;letter-spacing:1px;" id="markDotLabel">Anschuss</div>
+  </div>
+
+  <div id="edge-arrow">
+    <svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="22,4 38,40 22,30 6,40" fill="rgba(201,162,39,0.9)" stroke="#c9a227" stroke-width="1.5" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div id="dir-arrow">
+    <svg viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="36,6 56,60 36,46 16,60" fill="rgba(201,162,39,0.75)" stroke="#c9a227" stroke-width="2" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div class="cam-topbar" style="justify-content:center;">
+    <span class="cam-title">Navigation</span>
+    <div class="cam-gps">
+      <div class="gps-dot" id="gpsD2"></div>
+      <span id="gpsT2">GPS…</span>
+    </div>
+  </div>
+
+  <div class="nav-stats">
+    <div class="nstat"><div class="nl">Entfernung</div><div class="nv" id="nDist">—</div></div>
+    <div class="nstat"><div class="nl">Kurs</div><div class="nv" id="nBear">—°</div></div>
+    <div class="nstat"><div class="nl">Höhe ±</div><div class="nv" id="nAlt">—m</div></div>
+  </div>
+
+  <div class="cam-bottom">
+    <div class="arrived-msg" id="arrivedMsg">
+      <div class="arr-big">🎯 ZIEL ERREICHT</div>
+      <div class="arr-sub">Anschuss in &lt; 8 Meter</div>
+    </div>
+    <button id="btn-stop-alarm" onclick="stopAlarm()">⬛ Gefunden – Alarm stoppen</button>
+    <button class="btn-back" style="width:100%;margin-top:10px;" onclick="goHome()">← Neuen Anschuss markieren</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- ══ SCRIPTS ════════════════════════════
+     Reihenfolge ist wichtig:
+     1. Leaflet (vendor) → liefert globales L
+     2. state, util       → Basis
+     3. alarm, sensors    → Hilfsmodule
+     4. camera, ar, map   → Geschäftslogik
+     5. navigation, mark, home, splash → Screens
+     6. app.js            → Boot
+     ══════════════════════════════════════════ -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="js/state.js"></script>
+<script src="js/util.js"></script>
+<script src="js/alarm.js"></script>
+<script src="js/sensors.js"></script>
+<script src="js/camera.js"></script>
+<script src="js/ar.js"></script>
+<script src="js/map.js"></script>
+<script src="js/navigation.js"></script>
+<script src="js/mark.js"></script>
+<script src="js/home.js"></script>
+<script src="js/splash.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>

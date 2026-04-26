@@ -1,0 +1,96 @@
+/* ══════════════════════════════════════════
+   h.o.u.n.d. — base.css
+   Farbvariablen, Typography, globale Resets,
+   Toast, Map-Graustufen
+   ══════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Raleway:wght@300;400;600;700&family=Share+Tech+Mono&display=swap');
+
+:root {
+  --accent:  #c9a227;   /* gold/ocker */
+  --adim:    #8a6d10;   /* dark gold */
+  --accent2: #8fae1b;   /* yellow-green */
+  --olive:   #4a5e1a;   /* dark olive */
+  --olive2:  #3a4a14;   /* deeper olive */
+  --warn:    #87aec0;   /* blue-grey */
+  --danger:  #b83030;
+  --panel:   #1a1f0f;   /* near-black olive */
+  --border:  #2e3a18;   /* olive border */
+  --text:    #c8c89a;   /* warm grey-green */
+  --dim:     #5a6840;   /* muted olive */
+  --bright:  #f0edd8;   /* warm white */
+  --bg:      #111408;   /* very dark olive-black */
+  --mono:    'Share Tech Mono', monospace;
+  --sans:    'Raleway', sans-serif;
+  --serif:   'Libre Baskerville', serif;
+}
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  font-family: var(--sans);
+  color: var(--text);
+}
+
+/* ── TOAST ─────────────────────────────── */
+#toast {
+  position: fixed;
+  bottom: 140px;
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  background: rgba(13, 18, 16, 0.97);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 10px 22px;
+  font-size: 14px;
+  letter-spacing: 1px;
+  opacity: 0;
+  transition: all 0.25s;
+  z-index: 300;
+  pointer-events: none;
+  max-width: 88vw;
+  text-align: center;
+  white-space: normal;
+}
+#toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+#toast.err {
+  border-color: var(--danger);
+  color: #f99;
+}
+
+/* ── MAP GRAYSCALE (tiles only, not markers) ── */
+#home-map .leaflet-tile-pane   { filter: grayscale(100%); }
+#home-map .leaflet-marker-pane { filter: none; }
+#home-map .leaflet-popup-pane  { filter: none; }
+
+/* ── SHARED FLASH (für Foto-Snap) ──────── */
+@keyframes flashAnim {
+  0%   { opacity: 0.6; }
+  100% { opacity: 0; }
+}
+.flash {
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+  background: #fff;
+  pointer-events: none;
+  animation: flashAnim 0.35s ease-out forwards;
+}
+
+/* ── Shared pin float animation ────────── */
+@keyframes pinFloat {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50%      { transform: translateX(-50%) translateY(-12px); }
+}

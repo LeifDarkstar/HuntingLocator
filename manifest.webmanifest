@@ -1,0 +1,25 @@
+{
+  "name": "h.o.u.n.d.",
+  "short_name": "hound",
+  "description": "Hunt · Orientate · Understand · Navigate · Discover — Navigation für Jäger im Revier",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#111408",
+  "theme_color": "#111408",
+  "icons": [
+    {
+      "src": "assets/icons/pin-generic.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/pin-generic.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
