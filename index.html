@@ -324,6 +324,14 @@
           <input class="dist-inp" type="number" id="distInp" placeholder="0" min="1" max="999" inputmode="decimal">
           <span class="dist-unit">m</span>
         </div>
+        <div class="pos-row">
+          <span class="pos-label">Position</span>
+          <div class="pos-segments">
+            <button type="button" class="pos-btn active" id="posBtn-pirsch"    onclick="setShotPosition('pirsch')">Pirsch</button>
+            <button type="button" class="pos-btn"        id="posBtn-bodensitz" onclick="setShotPosition('bodensitz')">Bodensitz</button>
+            <button type="button" class="pos-btn"        id="posBtn-hochsitz"  onclick="setShotPosition('hochsitz')">Hochsitz</button>
+          </div>
+        </div>
         <button class="btn-confirm" onclick="doMark()">✓ &nbsp; Anschuss speichern</button>
       </div>
       <button class="btn-redo" onclick="redoAim()">↩ Nochmal zielen</button>

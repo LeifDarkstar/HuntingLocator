@@ -203,6 +203,50 @@
   color: rgba(255, 255, 255, 0.4);
   letter-spacing: 2px;
 }
+
+/* ── Position-Picker (Schießposition) ───────────── */
+.pos-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.pos-label {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
+}
+.pos-segments {
+  flex: 1;
+  display: flex;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(201, 162, 39, 0.4);
+  border-radius: 6px;
+  padding: 3px;
+}
+.pos-btn {
+  flex: 1;
+  padding: 8px 4px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.55);
+  font-family: var(--sans);
+  font-size: 13px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.pos-btn:active { opacity: 0.8; }
+.pos-btn.active {
+  background: var(--adim);
+  border-color: var(--accent);
+  color: var(--bright);
+}
+
 .snap-info {
   font-size: 12px;
   color: var(--dim);

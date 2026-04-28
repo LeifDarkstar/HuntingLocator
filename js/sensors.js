@@ -38,7 +38,7 @@ function startGPS() {
     S.acc = Math.round(Math.min(...recent.map(p => p.acc)));
 
     refreshGPS();
-    if (S.target) renderAR();
+    if (getActiveAnschuss()) renderAR();
   }, () => {}, {
     enableHighAccuracy: true,
     maximumAge: 0,
@@ -128,7 +128,7 @@ function listenOri() {
     const mh = document.getElementById('mHead');
     if (mh) mh.textContent = S.heading + '\u00b0';
 
-    if (S.target) renderAR();
+    if (getActiveAnschuss()) renderAR();
   };
 
   window.addEventListener('deviceorientationabsolute', window._oriHandler, true);

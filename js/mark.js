@@ -1,8 +1,22 @@
 /* ══════════════════════════════════════════
    mark.js — Anschuss markieren (2-Schritt-Prozess)
    Schritt 1: Ziel einrahmen → snapAim (GPS/Kompass/Tilt einfrieren)
-   Schritt 2: Entfernung eingeben → doMark (Ziel berechnen + speichern)
+   Schritt 2: Entfernung + Schießposition → doMark (Ziel berechnen + speichern)
    ══════════════════════════════════════════ */
+
+// Aktuell ausgewählte Schießposition – wird im UI per Segment-Buttons gesetzt.
+// Default = letzte Auswahl, initial 'pirsch'.
+let _shotPosition = 'pirsch';   // 'pirsch' | 'bodensitz' | 'hochsitz'
+
+function setShotPosition(pos) {
+  if (!['pirsch', 'bodensitz', 'hochsitz'].includes(pos)) return;
+  _shotPosition = pos;
+  // UI: aktiven Button markieren
+  ['pirsch', 'bodensitz', 'hochsitz'].forEach(p => {
+    const btn = document.getElementById('posBtn-' + p);
+    if (btn) btn.classList.toggle('active', p === pos);
+  });
+}
 
 function snapAim() {
   if (!S.lat || !S.lon) { toast('Warte auf GPS...', true); return; }
@@ -23,6 +37,9 @@ function snapAim() {
   document.getElementById('snapHead').textContent = S.heading + '\u00b0';
   document.getElementById('snapTilt').textContent = (S.tilt > 0 ? '+' : '') + S.tilt + '\u00b0';
   document.getElementById('distInp').value = '';
+
+  // Segment-Buttons auf zuletzt benutzten Wert setzen
+  setShotPosition(_shotPosition);
 
   // Foto-Flash
   const fl = document.createElement('div');
@@ -54,10 +71,24 @@ function doMark() {
 
   const tgtLat = S.snap.lat + dLat * 180 / Math.PI;
   const tgtLon = S.snap.lon + dLon * 180 / Math.PI;
-  const tgtAlt = (S.snap.alt ?? 0) + vD;
+  const tgtAlt = (S.snap.alt != null ? S.snap.alt : 0) + vD;
 
-  S.target = { lat: tgtLat, lon: tgtLon, alt: tgtAlt, snapDist: dist };
-  saveGlobalTarget('anschuss', 'Anschuss', tgtLat, tgtLon, tgtAlt);
+  // Anschuss als Singleton speichern (ersetzt vorherigen)
+  setSingletonTarget('anschuss', {
+    label: 'Anschuss',
+    lat:   tgtLat,
+    lon:   tgtLon,
+    alt:   tgtAlt,
+    meta: {
+      snapDist:    dist,
+      snapHeading: S.snap.heading,
+      snapTilt:    S.snap.tilt,
+      shooterLat:  S.snap.lat,
+      shooterLon:  S.snap.lon,
+      shooterAlt:  S.snap.alt,
+      position:    _shotPosition,   // 'pirsch' | 'bodensitz' | 'hochsitz'
+    },
+  });
 
   // Visuelles Feedback
   const fl = document.createElement('div');
@@ -69,7 +100,7 @@ function doMark() {
   if (mb) mb.style.display = 'block';
 
   const mb2 = document.getElementById('markBadgeMain');
-  if (mb2) mb2.textContent = '✓ Anschuss gespeichert';
+  if (mb2) mb2.textContent = '\u2713 Anschuss gespeichert';
 
   toast('\u2713 Anschuss gespeichert!');
   setTimeout(() => goHome(), 700);

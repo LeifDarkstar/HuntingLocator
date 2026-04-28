@@ -1,5 +1,6 @@
 /* ══════════════════════════════════════════
    home.js — Home-Rubrik (Standort speichern + Nav)
+   Nutzt neue Helfer aus state.js (TARGETS-Store).
    ══════════════════════════════════════════ */
 
 let _homeTarget = null;   // aktuell ausgewähltes Ziel beim Home-Nav
@@ -15,7 +16,14 @@ function closeTypePicker() {
 }
 
 function saveStandort(type) {
-  HOME_TARGETS[type] = { lat: S.lat, lon: S.lon, alt: S.alt ?? 0 };
+  const label = type === 'hochsitz' ? 'Hochsitz' : 'Auto';
+  setSingletonTarget(type, {
+    label: label,
+    lat:   S.lat,
+    lon:   S.lon,
+    alt:   S.alt != null ? S.alt : 0,
+  });
+
   closeTypePicker();
   document.getElementById('saved' + (type === 'hochsitz' ? 'Hochsitz' : 'Auto')).style.display = 'flex';
 
@@ -25,32 +33,34 @@ function saveStandort(type) {
   updateSavedDistances();
   updateHomeMapPlayer();
   updateNavButton();
-  toast('✓ ' + (type === 'hochsitz' ? 'Hochsitz' : 'Auto') + ' gespeichert!');
+  toast('\u2713 ' + label + ' gespeichert!');
 }
 
 function deleteStandort(type) {
-  deleteGlobalTarget(type);
+  deleteTargetsByType(type);
   document.getElementById('saved' + (type === 'hochsitz' ? 'Hochsitz' : 'Auto')).style.display = 'none';
-  if (!HOME_TARGETS.hochsitz && !HOME_TARGETS.auto) {
+  if (!getFirstByType('hochsitz') && !getFirstByType('auto')) {
     const navBtn = document.getElementById('cardHomeNav');
     if (navBtn) navBtn.style.opacity = '0.4';
   }
 }
 
 function refreshHomeMenu() {
-  // Sync saved-items mit GLOBAL_TARGETS
+  // Sync saved-items mit dem aktuellen TARGETS-Stand
   const hochEl = document.getElementById('savedHochsitz');
   const autoEl = document.getElementById('savedAuto');
   const navBtn = document.getElementById('cardHomeNav');
-  if (hochEl) hochEl.style.display = GLOBAL_TARGETS['hochsitz'] ? 'flex' : 'none';
-  if (autoEl) autoEl.style.display = GLOBAL_TARGETS['auto']     ? 'flex' : 'none';
-  if (navBtn) navBtn.style.opacity = (GLOBAL_TARGETS['hochsitz'] || GLOBAL_TARGETS['auto']) ? '1' : '0.4';
+  const hasHoch = !!getFirstByType('hochsitz');
+  const hasAuto = !!getFirstByType('auto');
+  if (hochEl) hochEl.style.display = hasHoch ? 'flex' : 'none';
+  if (autoEl) autoEl.style.display = hasAuto ? 'flex' : 'none';
+  if (navBtn) navBtn.style.opacity = (hasHoch || hasAuto) ? '1' : '0.4';
 }
 
 function updateSavedDistances() {
   if (!S.lat) return;
   ['hochsitz', 'auto'].forEach(type => {
-    const t  = GLOBAL_TARGETS[type];
+    const t  = getFirstByType(type);
     const el = document.getElementById('dist' + (type === 'hochsitz' ? 'Hochsitz' : 'Auto'));
     if (t && el) {
       const d = haversine(S.lat, S.lon, t.lat, t.lon);
@@ -60,7 +70,7 @@ function updateSavedDistances() {
 }
 
 async function goHomeNav() {
-  if (!HOME_TARGETS.hochsitz && !HOME_TARGETS.auto) {
+  if (!getFirstByType('hochsitz') && !getFirstByType('auto')) {
     toast('Erst Standort markieren!', true);
     return;
   }

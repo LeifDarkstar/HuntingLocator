@@ -32,7 +32,7 @@ async function goMark() {
 }
 
 async function goNav() {
-  if (!S.target) { toast('Zuerst einen Anschuss markieren!', true); return; }
+  if (!getActiveAnschuss()) { toast('Zuerst einen Anschuss markieren!', true); return; }
   await requestOri();
   document.getElementById('s-home').classList.remove('on');
   document.getElementById('s-mark').classList.remove('on');
@@ -130,7 +130,7 @@ function updateNavButton() {
   const btn = document.getElementById('btn-central-nav');
   const cnt = document.getElementById('navBtnCount');
   if (!btn) return;
-  const n = Object.keys(GLOBAL_TARGETS).length;
+  const n = targetCount();
   if (n > 0) {
     btn.classList.add('visible', 'has-targets');
     if (cnt) cnt.textContent = n + ' Ziel' + (n > 1 ? 'e' : '');
@@ -142,7 +142,7 @@ function updateNavButton() {
 }
 
 async function goGlobalNav() {
-  if (Object.keys(GLOBAL_TARGETS).length === 0) {
+  if (!hasTargets()) {
     toast('Noch keine Ziele gespeichert!', true);
     return;
   }
@@ -155,7 +155,7 @@ async function goGlobalNav() {
   _homeTarget = null;
   document.getElementById('homeNavStats').style.display = 'none';
 
-  const n = Object.keys(GLOBAL_TARGETS).length;
+  const n = targetCount();
   document.getElementById('homeNavTitle').textContent =
     n + ' Ziel' + (n > 1 ? 'e' : '') + ' – antippen zum Navigieren';
 

@@ -8,11 +8,12 @@
 
 // ── AR: Mark-Nav (Anschuss) ────────────────
 function renderAR() {
-  if (!S.target || !S.lat) return;
+  const tgt = getActiveAnschuss();
+  if (!tgt || !S.lat) return;
 
-  const dist    = haversine(S.lat, S.lon, S.target.lat, S.target.lon);
-  const bearing = calcBearing(S.lat, S.lon, S.target.lat, S.target.lon);
-  const altDiff = S.target.alt - (S.alt ?? S.target.alt);
+  const dist    = haversine(S.lat, S.lon, tgt.lat, tgt.lon);
+  const bearing = calcBearing(S.lat, S.lon, tgt.lat, tgt.lon);
+  const altDiff = tgt.alt - (S.alt != null ? S.alt : tgt.alt);
 
   // ── Stats-Anzeige ──
   const corrDist = dist;
@@ -119,7 +120,7 @@ let _arLoopId = null;
 function startARLoop() {
   stopARLoop();
   function loop() {
-    if (S.target && document.getElementById('s-nav').classList.contains('on')) {
+    if (getActiveAnschuss() && document.getElementById('s-nav').classList.contains('on')) {
       renderAR();
     }
     _arLoopId = requestAnimationFrame(loop);
@@ -160,14 +161,14 @@ function renderHomeAR() {
   ];
 
   targets.forEach(({ type, dotId, edgeId, labelId }) => {
-    const t    = GLOBAL_TARGETS[type];
+    const t    = getFirstByType(type);
     const dot  = document.getElementById(dotId);
     const edge = document.getElementById(edgeId);
     if (!t || !dot || !edge) return;
 
     const dist    = haversine(S.lat, S.lon, t.lat, t.lon);
     const bearing = calcBearing(S.lat, S.lon, t.lat, t.lon);
-    const altDiff = t.alt - (S.alt ?? t.alt);
+    const altDiff = t.alt - (S.alt != null ? S.alt : t.alt);
 
     // Label mit Distanz
     const lbl = document.getElementById(labelId);
