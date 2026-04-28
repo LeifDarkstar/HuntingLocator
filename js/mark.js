@@ -19,7 +19,25 @@ function setShotPosition(pos) {
 }
 
 function snapAim() {
-  if (!S.lat || !S.lon) { toast('Warte auf GPS...', true); return; }
+  if (!S.lat || !S.lon) { toast('Warte auf GPS…', true); return; }
+
+  // GPS-Gate: nur snappen, wenn die Ampel auf grün steht.
+  const status = (typeof getGpsStatus === 'function') ? getGpsStatus() : 'ready';
+  if (status === 'bad') {
+    toast('GPS zu schlecht für einen sauberen Snap. Standort wechseln.', true);
+    return;
+  }
+  if (status === 'wait') {
+    toast('GPS sammelt sich noch — kurz warten, dann erneut snappen.', true);
+    return;
+  }
+
+  // Beste Einzelmessung im Buffer nehmen (nicht den Durchschnitt)
+  const best = (typeof getBestRecentGPS === 'function') ? getBestRecentGPS() : null;
+  const snapLat = best ? best.lat : S.lat;
+  const snapLon = best ? best.lon : S.lon;
+  const snapAlt = best ? best.alt : S.alt;
+  const snapAcc = best ? best.acc : S.acc;
 
   // Rohester, aktuellster Heading-Wert (nicht geglättet) für maximale Genauigkeit
   const snapHeading = S.headingBuf.length > 0
@@ -29,9 +47,10 @@ function snapAim() {
   S.snap = {
     tilt:    S.tilt,
     heading: snapHeading,
-    lat:     S.lat,
-    lon:     S.lon,
-    alt:     S.alt,
+    lat:     snapLat,
+    lon:     snapLon,
+    alt:     snapAlt,
+    acc:     snapAcc,
   };
 
   document.getElementById('snapHead').textContent = S.heading + '\u00b0';
@@ -86,7 +105,8 @@ function doMark() {
       shooterLat:  S.snap.lat,
       shooterLon:  S.snap.lon,
       shooterAlt:  S.snap.alt,
-      position:    _shotPosition,   // 'pirsch' | 'bodensitz' | 'hochsitz'
+      shooterAcc:  S.snap.acc,        // GPS-Genauigkeit beim Snap, in Metern
+      position:    _shotPosition,     // 'pirsch' | 'bodensitz' | 'hochsitz'
     },
   });
 

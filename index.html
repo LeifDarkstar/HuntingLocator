@@ -303,7 +303,11 @@
         <div class="s-chip"><div class="sc-l">Richtung</div><div class="sc-v" id="mHead">—°</div></div>
         <div class="s-chip"><div class="sc-l">GPS ±</div><div class="sc-v" id="mAcc">—</div></div>
       </div>
-      <button class="btn-aim" onclick="snapAim()">
+      <div class="snap-status bad" id="snapStatus">
+        <span class="snap-status-dot"></span>
+        <span class="snap-status-txt">Warte auf GPS…</span>
+      </div>
+      <button class="btn-aim" id="btnSnap" onclick="snapAim()">
         ◎ &nbsp; Ziel erfassen
       </button>
     </div>
