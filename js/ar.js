@@ -160,6 +160,10 @@ function renderHomeAR() {
     { type: 'anschuss', dotId: 'ar-anschuss', edgeId: 'edge-anschuss', labelId: 'labelAnschuss' },
   ];
 
+  // Tracker für globale Ankunfts-Logik (Alarm auch ohne explizit angetipptes Ziel)
+  let closestType = null;
+  let closestDist = Infinity;
+
   targets.forEach(({ type, dotId, edgeId, labelId }) => {
     const t    = getFirstByType(type);
     const dot  = document.getElementById(dotId);
@@ -169,6 +173,11 @@ function renderHomeAR() {
     const dist    = haversine(S.lat, S.lon, t.lat, t.lon);
     const bearing = calcBearing(S.lat, S.lon, t.lat, t.lon);
     const altDiff = t.alt - (S.alt != null ? S.alt : t.alt);
+
+    if (dist < closestDist) {
+      closestDist = dist;
+      closestType = type;
+    }
 
     // Label mit Distanz
     const lbl = document.getElementById(labelId);
@@ -183,7 +192,7 @@ function renderHomeAR() {
     while (hDiff >  180) hDiff -= 360;
     while (hDiff < -180) hDiff += 360;
 
-    // Vertikal: fix -3° (siehe AR-Neuaufbau-Plan)
+    // Vertikal: fix -3° (siehe AR-Neuaufbau-Plan, Schritt 3 wird Barometer einbauen)
     const vDiff = -3;
 
     const xPx     = ( hDiff / (CAM_HFOV / 2)) * (sw / 2);
@@ -212,16 +221,29 @@ function renderHomeAR() {
       edge.style.transform = 'translate(-50%,-50%) rotate(' + ea + 'deg)';
     }
 
-    // Ausgewähltes Ziel: Stats + Arrived-Check
+    // Stats nur für das selektierte Ziel anzeigen
     if (_homeTarget === type) {
       document.getElementById('hDist').textContent =
         dist < 1000 ? Math.round(dist) + ' m' : (dist / 1000).toFixed(2) + ' km';
       document.getElementById('hBear').textContent = Math.round(bearing) + '°';
       document.getElementById('hAlt').textContent  = (altDiff >= 0 ? '+' : '') + Math.round(altDiff) + ' m';
-      const arrived = dist < 8;
-      document.getElementById('homeArrivedMsg').classList.toggle('show', arrived);
-      if ( arrived && !_homeAlarmActive) startHomeAlarm();
-      if (!arrived &&  _homeAlarmActive) stopHomeAlarm();
     }
   });
+
+  // ── Globaler Ankunfts-Check ──
+  // Alarm + Ankunfts-Meldung feuern, sobald irgendein Ziel < 8 m ist —
+  // egal ob du vorher ein Ziel angetippt hattest.
+  const arrivedMsg = document.getElementById('homeArrivedMsg');
+  const arrived    = closestDist < 8;
+  if (arrivedMsg) arrivedMsg.classList.toggle('show', arrived);
+
+  if (arrived && !_homeAlarmActive) {
+    startHomeAlarm();
+    // Wenn noch kein Ziel selektiert ist, automatisch das nächste auswählen
+    // → damit zeigt der Stats-Streifen sinnvolle Werte
+    if (!_homeTarget && closestType && typeof selectHomeTarget === 'function') {
+      selectHomeTarget(closestType);
+    }
+  }
+  if (!arrived && _homeAlarmActive) stopHomeAlarm();
 }

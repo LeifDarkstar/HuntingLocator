@@ -43,11 +43,24 @@ function playBeepSequence() {
   } catch (e) {}
 }
 
+// ── Vibrations-Backup ───────────────────
+// Funktioniert auf Android & einigen Browsern.
+// iOS Safari ignoriert die Vibration API komplett (Apple-Limit, kein Bug der App).
+function triggerArrivalVibration() {
+  try {
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+      // 200 ms an, 80 ms Pause, 200 ms an, 80 ms Pause, 400 ms an
+      navigator.vibrate([200, 80, 200, 80, 400]);
+    }
+  } catch (e) {}
+}
+
 // ── MARK-NAV ALARM ──────────────────────
 function startAlarm() {
   if (_alarmActive) return;
   _alarmActive = true;
   document.getElementById('btn-stop-alarm').style.display = 'block';
+  triggerArrivalVibration();
   playBeepSequence();
   _alarmInterval = setInterval(playBeepSequence, 3000);
 }
@@ -57,6 +70,7 @@ function stopAlarm() {
   _alarmInterval = null;
   const btn = document.getElementById('btn-stop-alarm');
   if (btn) btn.style.display = 'none';
+  try { if (navigator.vibrate) navigator.vibrate(0); } catch (e) {}
 }
 function playArrivalSound() { startAlarm(); }
 
@@ -65,6 +79,7 @@ function startHomeAlarm() {
   if (_homeAlarmActive) return;
   _homeAlarmActive = true;
   document.getElementById('btn-stop-home-alarm').style.display = 'block';
+  triggerArrivalVibration();
   playBeepSequence();
   _homeAlarmInterval = setInterval(playBeepSequence, 3000);
 }
@@ -74,4 +89,5 @@ function stopHomeAlarm() {
   _homeAlarmInterval = null;
   const btn = document.getElementById('btn-stop-home-alarm');
   if (btn) btn.style.display = 'none';
+  try { if (navigator.vibrate) navigator.vibrate(0); } catch (e) {}
 }
