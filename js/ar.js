@@ -120,8 +120,13 @@ let _arLoopId = null;
 function startARLoop() {
   stopARLoop();
   function loop() {
-    if (getActiveAnschuss() && document.getElementById('s-nav').classList.contains('on')) {
-      renderAR();
+    try {
+      if (getActiveAnschuss() && document.getElementById('s-nav').classList.contains('on')) {
+        renderAR();
+      }
+    } catch (e) {
+      console.error('[ar] renderAR error:', e);
+      _arLastError = e && e.message ? e.message : String(e);
     }
     _arLoopId = requestAnimationFrame(loop);
   }
@@ -136,11 +141,20 @@ function stopARLoop() {
 // ══════════════════════════════════════════
 
 let _homeARLoop = null;
+let _arFrameCount = 0;
+let _arLastError  = null;
 
 function startHomeARLoop() {
   stopHomeARLoop();
   function loop() {
-    if (document.getElementById('s-home-nav').classList.contains('on')) renderHomeAR();
+    try {
+      _arFrameCount++;
+      if (document.getElementById('s-home-nav').classList.contains('on')) renderHomeAR();
+      updateDebugHud();
+    } catch (e) {
+      console.error('[ar] renderHomeAR error:', e);
+      _arLastError = e && e.message ? e.message : String(e);
+    }
     _homeARLoop = requestAnimationFrame(loop);
   }
   _homeARLoop = requestAnimationFrame(loop);
@@ -149,9 +163,65 @@ function stopHomeARLoop() {
   if (_homeARLoop) { cancelAnimationFrame(_homeARLoop); _homeARLoop = null; }
 }
 
+// ── Debug-HUD (vorübergehend, bis Bug-Suche durch) ─────
+// Zeigt Frame-Counter + GPS + Distanzen pro Ziel.
+// So sehen wir live, ob der Loop lebt und was er sieht.
+let _debugHud = null;
+function ensureDebugHud() {
+  if (_debugHud) return _debugHud;
+  const el = document.createElement('div');
+  el.id = 'arDebugHud';
+  el.style.cssText =
+    'position:fixed;left:6px;bottom:6px;z-index:90;' +
+    'font-family:ui-monospace,Menlo,monospace;font-size:10px;line-height:1.35;' +
+    'color:#fff;background:rgba(0,0,0,0.72);padding:5px 8px;border-radius:4px;' +
+    'pointer-events:none;max-width:96vw;white-space:pre;';
+  document.body.appendChild(el);
+  _debugHud = el;
+  return el;
+}
+
+function updateDebugHud() {
+  const sNav  = document.getElementById('s-home-nav');
+  const onArV = sNav && sNav.classList.contains('on') && !_homeMapActive;
+  const hud   = ensureDebugHud();
+
+  if (!onArV) { hud.style.display = 'none'; return; }
+  hud.style.display = 'block';
+
+  const lat = (S.lat != null) ? S.lat.toFixed(5) : '—';
+  const lon = (S.lon != null) ? S.lon.toFixed(5) : '—';
+  const acc = (S.acc != null) ? (S.acc + 'm') : '—';
+  const hd  = (S.heading != null && !isNaN(S.heading)) ? (S.heading + '°') : '—';
+
+  const lines = [
+    'frame=' + _arFrameCount + ' alarm=' + (_homeAlarmActive ? 'AN' : 'aus'),
+    'gps ' + lat + ',' + lon + ' ±' + acc + ' hd=' + hd,
+  ];
+
+  ['hochsitz', 'auto', 'anschuss'].forEach(type => {
+    const t = (typeof getFirstByType === 'function') ? getFirstByType(type) : null;
+    if (!t) return;
+    if (S.lat == null) return;
+    const d = haversine(S.lat, S.lon, t.lat, t.lon);
+    const b = calcBearing(S.lat, S.lon, t.lat, t.lon);
+    lines.push(type.padEnd(8, ' ') + ' d=' + Math.round(d) + 'm b=' + Math.round(b) + '°');
+  });
+
+  if (_arLastError) lines.push('ERR: ' + _arLastError);
+
+  hud.textContent = lines.join('\n');
+}
+
 function renderHomeAR() {
   if (!S.lat) return;
   if (_homeMapActive) return;
+
+  // NaN-Schutz: wenn der Kompass kurz ungültige Werte liefert (Magnetfeld-Störung,
+  // Kalibrierungslücke), würden die Pin-Positionen "NaN" ergeben und wir würden
+  // das letzte Bild einfrieren. Stattdessen kurz pausieren — Label-Update wird
+  // unten trotzdem gemacht, weil das nur Distanz braucht (keine Richtung).
+  const headingValid = (typeof S.heading === 'number') && !isNaN(S.heading);
 
   const sw = window.innerWidth, sh = window.innerHeight;
   const targets = [
@@ -187,6 +257,10 @@ function renderHomeAR() {
         (dist < 1000 ? Math.round(dist) + 'm' : (dist / 1000).toFixed(1) + 'km');
     }
 
+    // Wenn Heading gerade ungültig ist, Pin-Position nicht neu berechnen
+    // (wäre sonst NaN). Label oben drüber wurde aber bereits aktualisiert.
+    if (!headingValid) return;
+
     // Horizontaler Winkel
     let hDiff = bearing - S.heading;
     while (hDiff >  180) hDiff -= 360;
@@ -199,6 +273,8 @@ function renderHomeAR() {
     const yPx     = (-vDiff / (CAM_VFOV / 2)) * (sh / 2);
     const screenX = sw / 2 + xPx;
     const screenY = sh / 2 + yPx;
+
+    if (isNaN(screenX) || isNaN(screenY)) return;
 
     const buf = 20;
     const onScreen = screenX > buf && screenX < sw - buf
