@@ -82,16 +82,8 @@ function initHomeMap() {
     if (!t) return;
 
     const iconSrc = type === 'hochsitz' ? HOCHSITZ_ICON : AUTO_ICON;
-    const pinIcon = L.divIcon({
-      html: `<div style="position:relative;text-align:center;">
-               <img src="${iconSrc}" style="width:48px;height:auto;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5));">
-               <div style="margin-top:2px;background:rgba(0,0,0,0.65);color:#fff;font-size:10px;padding:1px 5px;border-radius:3px;white-space:nowrap;font-family:monospace;letter-spacing:1px;">
-                 ${type === 'hochsitz' ? 'Hochsitz' : 'Auto'}
-               </div>
-             </div>`,
-      className:  '',
-      iconAnchor: [24, 80],
-    });
+    const label   = type === 'hochsitz' ? 'Hochsitz' : 'Auto';
+    const pinIcon = createMapPinIcon(iconSrc, label);
 
     if (_homeMapMarkers[type]) {
       _homeMapMarkers[type].setLatLng([t.lat, t.lon]);
@@ -136,19 +128,37 @@ function updateHomeMapMarkers() {
       }
       return;
     }
-    const pinIcon = L.divIcon({
-      html: `<div style="text-align:center;">
-               <img src="${iconSrc}" style="width:48px;height:auto;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5));">
-               <div style="margin-top:1px;background:rgba(0,0,0,0.65);color:#fff;font-size:10px;padding:1px 5px;border-radius:3px;white-space:nowrap;font-family:monospace;">${label}</div>
-             </div>`,
-      className:  '',
-      iconAnchor: [24, 88],
-    });
+    const pinIcon = createMapPinIcon(iconSrc, label);
     if (_homeMapMarkers[type]) {
       _homeMapMarkers[type].setLatLng([t.lat, t.lon]).setIcon(pinIcon);
     } else {
       _homeMapMarkers[type] = L.marker([t.lat, t.lon], { icon: pinIcon }).addTo(_homeMap);
     }
+  });
+}
+
+// ── Helfer: Konsistente Pin-Icons für die Karte ────
+// Wichtig: iconSize + iconAnchor sauber definieren, sonst springt die Pin-Spitze
+// bei verschiedenen Zoomstufen scheinbar weg von der echten Koordinate.
+//
+// Pin-Bild ist 264×330 px (verhältnis ≈ 0.8). Bei Width 48 → Height 60.
+// Pin-Spitze (untere Spitze des Tropfens, wo die Schatten-Ellipse ist) liegt
+// bei y ≈ 60 im gerenderten Icon. Genau dort muss der Anker sein.
+function createMapPinIcon(iconSrc, label) {
+  return L.divIcon({
+    html:
+      '<div style="width:60px;text-align:center;line-height:0;pointer-events:none;">' +
+        '<img src="' + iconSrc + '" style="width:48px;height:60px;display:inline-block;' +
+        'filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5));">' +
+        '<div style="line-height:1.1;margin-top:2px;background:rgba(0,0,0,0.65);' +
+        'color:#fff;font-size:10px;padding:1px 5px;border-radius:3px;' +
+        'white-space:nowrap;font-family:monospace;letter-spacing:1px;display:inline-block;">' +
+          label +
+        '</div>' +
+      '</div>',
+    className:  '',
+    iconSize:   [60, 80],
+    iconAnchor: [30, 60],   // Pin-Spitze auf die echte lat/lon-Position
   });
 }
 

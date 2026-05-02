@@ -54,11 +54,16 @@
 }
 .cam-title {
   font-size: 12px;
-  letter-spacing: 4px;
+  letter-spacing: 3px;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.4);
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;            /* ermöglicht Schrumpfen statt umzubrechen */
   text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 8px;
 }
 .cam-gps {
   display: flex;

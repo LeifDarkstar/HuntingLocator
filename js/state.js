@@ -12,6 +12,7 @@
 const S = {
   lat: null, lon: null, alt: null, acc: null,
   tilt: 0, heading: 0,
+  headingAcc: null,    // Kompass-Genauigkeit in Grad (iOS), null = unbekannt/Android
   snap: null,
   // target: weggefallen → siehe Getter weiter unten (S.target = getActiveAnschuss())
   stream: null,

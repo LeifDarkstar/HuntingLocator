@@ -157,7 +157,7 @@ async function goGlobalNav() {
 
   const n = targetCount();
   document.getElementById('homeNavTitle').textContent =
-    n + ' Ziel' + (n > 1 ? 'e' : '') + ' – antippen zum Navigieren';
+    n + ' Ziel' + (n > 1 ? 'e' : '') + ' antippen';
 
   // Karten-Modus zurück auf AR
   _homeMapActive = false;

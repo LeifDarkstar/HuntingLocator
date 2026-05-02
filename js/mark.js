@@ -21,13 +21,23 @@ function setShotPosition(pos) {
 function snapAim() {
   if (!S.lat || !S.lon) { toast('Warte auf GPS…', true); return; }
 
-  // GPS-Gate: nur snappen, wenn die Ampel auf grün steht.
-  const status = (typeof getGpsStatus === 'function') ? getGpsStatus() : 'ready';
-  if (status === 'bad') {
+  // Snap-Gate: GPS UND Kompass müssen passen.
+  const gpsStatus     = (typeof getGpsStatus     === 'function') ? getGpsStatus()     : 'ready';
+  const compassStatus = (typeof getCompassStatus === 'function') ? getCompassStatus() : 'ready';
+
+  if (gpsStatus === 'bad') {
     toast('GPS zu schlecht für einen sauberen Snap. Standort wechseln.', true);
     return;
   }
-  if (status === 'wait') {
+  if (compassStatus === 'bad') {
+    toast('Kompass unkalibriert — Telefon einmal in einer 8 schwenken, dann erneut.', true);
+    return;
+  }
+  if (compassStatus === 'wait') {
+    toast('Kompass mäßig — kurz in einer 8 schwenken, dann nochmal snappen.', true);
+    return;
+  }
+  if (gpsStatus === 'wait') {
     toast('GPS sammelt sich noch — kurz warten, dann erneut snappen.', true);
     return;
   }
@@ -45,12 +55,13 @@ function snapAim() {
     : S.heading;
 
   S.snap = {
-    tilt:    S.tilt,
-    heading: snapHeading,
-    lat:     snapLat,
-    lon:     snapLon,
-    alt:     snapAlt,
-    acc:     snapAcc,
+    tilt:        S.tilt,
+    heading:     snapHeading,
+    headingAcc:  S.headingAcc,
+    lat:         snapLat,
+    lon:         snapLon,
+    alt:         snapAlt,
+    acc:         snapAcc,
   };
 
   document.getElementById('snapHead').textContent = S.heading + '\u00b0';
@@ -99,14 +110,15 @@ function doMark() {
     lon:   tgtLon,
     alt:   tgtAlt,
     meta: {
-      snapDist:    dist,
-      snapHeading: S.snap.heading,
-      snapTilt:    S.snap.tilt,
-      shooterLat:  S.snap.lat,
-      shooterLon:  S.snap.lon,
-      shooterAlt:  S.snap.alt,
-      shooterAcc:  S.snap.acc,        // GPS-Genauigkeit beim Snap, in Metern
-      position:    _shotPosition,     // 'pirsch' | 'bodensitz' | 'hochsitz'
+      snapDist:        dist,
+      snapHeading:     S.snap.heading,
+      snapHeadingAcc:  S.snap.headingAcc,   // Kompass-Genauigkeit beim Snap, in Grad (iOS)
+      snapTilt:        S.snap.tilt,
+      shooterLat:      S.snap.lat,
+      shooterLon:      S.snap.lon,
+      shooterAlt:      S.snap.alt,
+      shooterAcc:      S.snap.acc,           // GPS-Genauigkeit beim Snap, in Metern
+      position:        _shotPosition,        // 'pirsch' | 'bodensitz' | 'hochsitz'
     },
   });
 

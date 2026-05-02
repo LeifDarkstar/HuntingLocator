@@ -35,8 +35,10 @@ function renderAR() {
   while (hDiff >  180) hDiff -= 360;
   while (hDiff < -180) hDiff += 360;
 
-  // ── Vertikal: derzeit fix -3° (AR-Neuaufbau: hier Laser×sin(Tilt) + Barometer) ──
-  const vDiff = -3;
+  // ── Vertikal: Kamera-Neigung berücksichtigen ──
+  // (Schritt 3 wird das mit Barometer + altDiff noch verfeinern)
+  const tilt = (typeof S.tilt === 'number' && !isNaN(S.tilt)) ? S.tilt : 0;
+  const vDiff = -tilt;
 
   const sw = window.innerWidth;
   const sh = window.innerHeight;
@@ -189,14 +191,15 @@ function updateDebugHud() {
   if (!onArV) { hud.style.display = 'none'; return; }
   hud.style.display = 'block';
 
-  const lat = (S.lat != null) ? S.lat.toFixed(5) : '—';
-  const lon = (S.lon != null) ? S.lon.toFixed(5) : '—';
-  const acc = (S.acc != null) ? (S.acc + 'm') : '—';
-  const hd  = (S.heading != null && !isNaN(S.heading)) ? (S.heading + '°') : '—';
+  const lat  = (S.lat != null) ? S.lat.toFixed(5) : '—';
+  const lon  = (S.lon != null) ? S.lon.toFixed(5) : '—';
+  const acc  = (S.acc != null) ? (S.acc + 'm') : '—';
+  const hd   = (S.heading != null && !isNaN(S.heading)) ? (S.heading + '°') : '—';
+  const hAcc = (S.headingAcc != null && S.headingAcc >= 0) ? ('±' + Math.round(S.headingAcc) + '°') : '?';
 
   const lines = [
     'frame=' + _arFrameCount + ' alarm=' + (_homeAlarmActive ? 'AN' : 'aus'),
-    'gps ' + lat + ',' + lon + ' ±' + acc + ' hd=' + hd,
+    'gps ' + lat + ',' + lon + ' ±' + acc + ' hd=' + hd + ' (' + hAcc + ')',
   ];
 
   ['hochsitz', 'auto', 'anschuss'].forEach(type => {
@@ -257,28 +260,57 @@ function renderHomeAR() {
         (dist < 1000 ? Math.round(dist) + 'm' : (dist / 1000).toFixed(1) + 'km');
     }
 
-    // Wenn Heading gerade ungültig ist, Pin-Position nicht neu berechnen
-    // (wäre sonst NaN). Label oben drüber wurde aber bereits aktualisiert.
-    if (!headingValid) return;
+    // ── Nahbereich (< 8 m) ─────────────────
+    // Bei sehr kurzer Distanz dominiert der GPS-Zufallsfehler die Bearing-Richtung.
+    // → Richtung wird unbrauchbar. Statt einen "tanzenden" Pin zu zeigen, fixieren
+    //    wir den Pin unten am Bildschirm zentriert. Visualisiert "du bist hier /
+    //    unter dir", was bei dieser Distanz die ehrlichere Aussage ist.
+    const isVeryClose = dist < 8;
 
-    // Horizontaler Winkel
-    let hDiff = bearing - S.heading;
-    while (hDiff >  180) hDiff -= 360;
-    while (hDiff < -180) hDiff += 360;
+    // Pin-Größe perspektivisch (näher = größer, ferner = kleiner)
+    // Im Nahbereich auf moderate Größe gedeckelt, damit nichts überläuft.
+    const img = dot.querySelector('img');
+    if (img) {
+      const sz = isVeryClose
+        ? 50
+        : Math.min(60, Math.max(14, 800 / Math.max(dist, 1)));
+      img.style.width = Math.round(sz) + 'px';
+    }
 
-    // Vertikal: fix -3° (siehe AR-Neuaufbau-Plan, Schritt 3 wird Barometer einbauen)
-    const vDiff = -3;
+    let screenX, screenY, onScreen;
 
-    const xPx     = ( hDiff / (CAM_HFOV / 2)) * (sw / 2);
-    const yPx     = (-vDiff / (CAM_VFOV / 2)) * (sh / 2);
-    const screenX = sw / 2 + xPx;
-    const screenY = sh / 2 + yPx;
+    if (isVeryClose) {
+      // Pin fest unten am Bildschirm — kein hDiff/vDiff
+      screenX = sw / 2;
+      screenY = sh * 0.82;
+      onScreen = true;
+    } else {
+      // Wenn Heading gerade ungültig ist, Pin-Position nicht neu berechnen
+      // (wäre sonst NaN). Label oben drüber wurde aber bereits aktualisiert.
+      if (!headingValid) return;
 
-    if (isNaN(screenX) || isNaN(screenY)) return;
+      // Horizontaler Winkel
+      let hDiff = bearing - S.heading;
+      while (hDiff >  180) hDiff -= 360;
+      while (hDiff < -180) hDiff += 360;
 
-    const buf = 20;
-    const onScreen = screenX > buf && screenX < sw - buf
-                  && screenY > buf && screenY < sh - buf;
+      // Vertikal: Kamera-Neigung berücksichtigen.
+      // Annahme: Ziel auf gleicher Höhe (altDiff=0) — Schritt 3 wird das
+      // mit dem Barometer noch verfeinern.
+      const tilt = (typeof S.tilt === 'number' && !isNaN(S.tilt)) ? S.tilt : 0;
+      const vDiff = -tilt;
+
+      const xPx = ( hDiff / (CAM_HFOV / 2)) * (sw / 2);
+      const yPx = (-vDiff / (CAM_VFOV / 2)) * (sh / 2);
+      screenX   = sw / 2 + xPx;
+      screenY   = sh / 2 + yPx;
+
+      if (isNaN(screenX) || isNaN(screenY)) return;
+
+      const buf = 20;
+      onScreen = screenX > buf && screenX < sw - buf
+              && screenY > buf && screenY < sh - buf;
+    }
 
     if (onScreen) {
       dot.style.display  = 'block';

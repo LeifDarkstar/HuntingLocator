@@ -87,6 +87,34 @@ function getGpsStatus() {
   return 'bad';
 }
 
+// ── Helfer: Compass-Status für UI-Ampel ────────
+// 'ready' = Kompass kalibriert (< 10°)
+// 'wait'  = mäßig (10–25°), kalibrieren empfohlen
+// 'bad'   = unkalibriert (> 25°), Snap blockieren
+//
+// iOS liefert webkitCompassAccuracy in Grad. -1 oder null = unbekannt.
+// Android liefert i.d.R. nichts → behandeln wir als 'ready' (sonst blockieren wir
+// Android-Nutzer ohne Grund).
+const COMPASS_READY_ACC = 10;   // Grad
+const COMPASS_WAIT_ACC  = 25;   // Grad
+
+function getCompassStatus() {
+  if (S.heading == null || isNaN(S.heading)) return 'wait';
+  if (S.headingAcc == null || S.headingAcc < 0) return 'ready'; // unbekannt → keine Sperre
+  if (S.headingAcc <= COMPASS_READY_ACC) return 'ready';
+  if (S.headingAcc <= COMPASS_WAIT_ACC)  return 'wait';
+  return 'bad';
+}
+
+// Kombinierter Snap-Bereitschafts-Status (GPS UND Kompass müssen passen)
+function getSnapReadiness() {
+  const g = getGpsStatus();
+  const c = getCompassStatus();
+  if (g === 'bad' || c === 'bad') return 'bad';
+  if (g === 'wait' || c === 'wait') return 'wait';
+  return 'ready';
+}
+
 function refreshGPS() {
   const cls = S.acc < GPS_READY_ACC ? 'ok' : 'warn';
   const txt = '+/-' + S.acc + 'm';
@@ -118,25 +146,41 @@ function refreshGPS() {
   }
 }
 
-// ── UI: GPS-Ampel im Mark-Screen ───────────
+// ── UI: Snap-Ampel im Mark-Screen ───────────
+// Berücksichtigt jetzt sowohl GPS als auch Kompass. Sagt klar, was gerade
+// das Problem ist. Bei rot/gelb wird der Snap-Knopf optisch ausgegraut.
 function updateSnapStatus() {
-  const status = getGpsStatus();
-  const pill   = document.getElementById('snapStatus');
-  const btn    = document.getElementById('btnSnap');
+  const gps      = getGpsStatus();
+  const compass  = getCompassStatus();
+  const overall  = getSnapReadiness();
+
+  const pill = document.getElementById('snapStatus');
+  const btn  = document.getElementById('btnSnap');
 
   if (pill) {
     pill.classList.remove('ready', 'wait', 'bad');
-    pill.classList.add(status);
+    pill.classList.add(overall);
     const txt = pill.querySelector('.snap-status-txt');
     if (txt) {
-      if (status === 'ready')      txt.textContent = 'GPS bereit — kannst snappen';
-      else if (status === 'wait')  txt.textContent = 'GPS sammelt sich… kurz warten';
-      else                          txt.textContent = 'GPS zu schlecht — Standort wechseln';
+      let msg;
+      // Reihenfolge: schwerwiegendstes Problem zuerst
+      if (gps === 'bad') {
+        msg = 'GPS zu schlecht — Standort wechseln';
+      } else if (compass === 'bad') {
+        msg = 'Kompass unkalibriert — Telefon in 8 schwenken';
+      } else if (compass === 'wait') {
+        msg = 'Kompass mäßig — kurz in 8 schwenken';
+      } else if (gps === 'wait') {
+        msg = 'GPS sammelt sich… kurz warten';
+      } else {
+        msg = 'Bereit — kannst snappen';
+      }
+      txt.textContent = msg;
     }
   }
 
   if (btn) {
-    btn.classList.toggle('disabled', status !== 'ready');
+    btn.classList.toggle('disabled', overall !== 'ready');
   }
 }
 
@@ -173,6 +217,11 @@ function listenOri() {
     let hd = null;
     if (e.webkitCompassHeading != null) hd = e.webkitCompassHeading;       // iOS
     else if (e.alpha != null)           hd = (360 - e.alpha + 360) % 360;  // Android
+
+    // Compass-Genauigkeit (nur iOS) — in Grad. -1 oder undefined = unbekannt.
+    if (typeof e.webkitCompassAccuracy === 'number' && e.webkitCompassAccuracy >= 0) {
+      S.headingAcc = e.webkitCompassAccuracy;
+    }
 
     if (hd !== null) {
       // Roh-Heading-Buffer (für Snap maximal aktuell)
