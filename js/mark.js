@@ -49,10 +49,10 @@ function snapAim() {
   const snapAlt = best ? best.alt : S.alt;
   const snapAcc = best ? best.acc : S.acc;
 
-  // Rohester, aktuellster Heading-Wert (nicht geglättet) für maximale Genauigkeit
-  const snapHeading = S.headingBuf.length > 0
-    ? S.headingBuf[S.headingBuf.length - 1]
-    : S.heading;
+  // Robuster Snap-Heading: zirkulärer Mittelwert der letzten N Samples.
+  // Glättet einzelne Glitch-Frames raus (Magnetometer wirft selten mal einen
+  // Ausreißer, der bei "nimm den letzten Wert" voll durchschlägt).
+  const snapHeading = circularMeanHeading(S.headingBuf, S.heading);
 
   S.snap = {
     tilt:        S.tilt,

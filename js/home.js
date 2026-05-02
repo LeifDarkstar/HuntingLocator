@@ -82,7 +82,7 @@ async function goHomeNav() {
 
   _homeTarget = null;
   document.getElementById('homeNavStats').style.display = 'none';
-  document.getElementById('homeNavTitle').textContent = 'Tippe ein Ziel an';
+  document.getElementById('homeNavTitle').textContent = 'Ziel wählen';
   startHomeARLoop();
 }
 

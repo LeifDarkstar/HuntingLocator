@@ -224,9 +224,10 @@ function listenOri() {
     }
 
     if (hd !== null) {
-      // Roh-Heading-Buffer (für Snap maximal aktuell)
+      // Roh-Heading-Buffer für robusten Snap-Mittelwert
+      // (10 Samples ≈ 170 ms — glättet einzelne Glitches, kaum spürbar lag)
       S.headingBuf.push(hd);
-      while (S.headingBuf.length > 5) S.headingBuf.shift();
+      while (S.headingBuf.length > 10) S.headingBuf.shift();
 
       if (S.heading === 0) {
         S.heading = Math.round(hd);
