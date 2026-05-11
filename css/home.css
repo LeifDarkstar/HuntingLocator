@@ -87,8 +87,17 @@
 }
 
 .ar-home-label {
-  text-align: center;
-  margin-top: 4px;
+  /* Absolut UNTER dem Pin positioniert (nicht im normalen Fluss).
+     Damit hat der Pin-Container die Höhe NUR des Icons – die translate(-50%,-100%)
+     verankert dann die Pin-Spitze (Icon-Unterkante) auf der echten Koordinate.
+     Der Suchradius-Kreis ist auf derselben Koordinate zentriert → liegt um die
+     Pin-Spitze herum. margin-top wird in ar.js dynamisch gesetzt, damit das
+     Label nicht in den Kreis hineinragt. */
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 8px;
   font-family: var(--mono);
   font-size: 14px;
   font-weight: 600;
@@ -98,7 +107,6 @@
   border-radius: 5px;
   padding: 3px 8px;
   white-space: nowrap;
-  display: inline-block;
 }
 
 /* ── Mark-Submenu (eigene ID, gleiches Look&Feel) ── */
