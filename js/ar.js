@@ -268,12 +268,14 @@ function renderHomeAR() {
     const isVeryClose = dist < 8;
 
     // Pin-Größe perspektivisch (näher = größer, ferner = kleiner)
-    // Im Nahbereich auf moderate Größe gedeckelt, damit nichts überläuft.
+    // Dramatischer Bereich, damit man auf einen Blick erkennt was nah und was fern ist.
+    // 200 m → 18 px, 50 m → 30 px, 20 m → 75 px, 15 m → 100 px (clamped 18–100).
+    // Im Nahbereich (< 8 m) festes ~70 px.
     const img = dot.querySelector('img');
     if (img) {
       const sz = isVeryClose
-        ? 50
-        : Math.min(60, Math.max(14, 800 / Math.max(dist, 1)));
+        ? 70
+        : Math.min(100, Math.max(18, 1500 / Math.max(dist, 1)));
       img.style.width = Math.round(sz) + 'px';
     }
 
@@ -327,6 +329,31 @@ function renderHomeAR() {
       edge.style.left      = cx + 'px';
       edge.style.top       = cy + 'px';
       edge.style.transform = 'translate(-50%,-50%) rotate(' + ea + 'deg)';
+    }
+
+    // ── Suchradius-Kreis ──
+    // Sichtbar nur wenn (a) Pin onScreen ist, (b) wir die Snap-Genauigkeit haben.
+    // Größe = Winkel-Durchmesser auf Pixel projiziert. Bei nahem Pin → großer Kreis,
+    // bei fernem Pin → kleiner Kreis. Etwas elliptisch (Höhe ~45% der Breite) als
+    // dezenter Hinweis auf Bodenprojektion.
+    const circle = document.getElementById('ar-circle-' + type);
+    if (circle) {
+      const acc = (t.meta && t.meta.shooterAcc) ? t.meta.shooterAcc : null;
+      if (onScreen && acc != null && acc > 0 && dist > 0.5) {
+        const HFOV_rad = CAM_HFOV * Math.PI / 180;
+        const angDiameterRad = (2 * acc) / dist;       // kleine Winkel ≈ tan
+        const widthPx  = angDiameterRad * (sw / HFOV_rad);
+        const heightPx = widthPx * 0.45;
+        const w = Math.max(28, Math.round(widthPx));
+        const h = Math.max(14, Math.round(heightPx));
+        circle.style.display = 'block';
+        circle.style.left    = screenX + 'px';
+        circle.style.top     = screenY + 'px';
+        circle.style.width   = w + 'px';
+        circle.style.height  = h + 'px';
+      } else {
+        circle.style.display = 'none';
+      }
     }
 
     // Stats nur für das selektierte Ziel anzeigen

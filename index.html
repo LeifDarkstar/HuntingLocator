@@ -150,6 +150,16 @@
         </div>
       </div>
 
+      <!-- Kompass-Kalibrierung -->
+      <button class="menu-card cal-entry" onclick="openCalibration()">
+        <div class="card-body">
+          <div class="card-label">Einstellung</div>
+          <div class="card-title">Kompass kalibrieren</div>
+          <div class="card-desc" id="calStatus">noch nicht kalibriert</div>
+        </div>
+        <div class="card-icon" style="font-size:22px;">🧭</div>
+      </button>
+
     </div>
     <div class="perm-note">Beim ersten Start: Kamera, GPS &amp; Sensoren erlauben.<br>Nur über <strong>https://</strong> öffnen.</div>
   </div>
@@ -199,6 +209,11 @@
 <!-- ══ HOME NAV SCREEN ═══════════════════ -->
 <div id="s-home-nav" class="cam-scr">
   <video id="vid-home-nav" autoplay playsinline muted webkit-playsinline></video>
+
+  <!-- Suchradius-Kreise (transparent, hinter den Pins) -->
+  <div id="ar-circle-hochsitz" class="ar-circle" style="display:none;"></div>
+  <div id="ar-circle-auto"     class="ar-circle" style="display:none;"></div>
+  <div id="ar-circle-anschuss" class="ar-circle" style="display:none;"></div>
 
   <!-- Hochsitz AR pin -->
   <div id="ar-hochsitz" style="display:none;position:absolute;z-index:15;transform:translate(-50%,-100%);pointer-events:auto;cursor:pointer;" onclick="selectHomeTarget('hochsitz')">
@@ -262,6 +277,72 @@
     </div>
     <button id="btn-stop-home-alarm" style="display:none;width:100%;margin-top:10px;padding:18px;background:#b83030;border:2px solid #e05050;border-radius:10px;color:#fff;font-family:var(--sans);font-size:20px;font-weight:700;letter-spacing:3px;text-transform:uppercase;cursor:pointer;animation:alarmPulse 0.8s ease-in-out infinite;" onclick="stopHomeAlarm()">⬛ Gefunden – Alarm stoppen</button>
     <button class="btn-back" style="width:100%;margin-top:10px;" onclick="goHomeBack()">← Zurück</button>
+  </div>
+</div>
+
+<!-- ══ KALIBRIERUNG: SNAP ═════════════════ -->
+<div id="s-cal-snap" class="cam-scr">
+  <div class="vid-wrap"><video id="vid-cal" autoplay playsinline muted webkit-playsinline></video></div>
+
+  <!-- Fadenkreuz (gleich wie Mark) -->
+  <div id="crosshair-cal" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:90px;height:90px;pointer-events:none;z-index:15;">
+    <svg viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="45" cy="45" r="40" stroke="rgba(201,162,39,0.35)" stroke-width="1"/>
+      <circle cx="45" cy="45" r="7"  stroke="#c9a227" stroke-width="1.5"/>
+      <line x1="45" y1="5"  x2="45" y2="34" stroke="#c9a227" stroke-width="1.5"/>
+      <line x1="45" y1="56" x2="45" y2="85" stroke="#c9a227" stroke-width="1.5"/>
+      <line x1="5"  y1="45" x2="34" y2="45" stroke="#c9a227" stroke-width="1.5"/>
+      <line x1="56" y1="45" x2="85" y2="45" stroke="#c9a227" stroke-width="1.5"/>
+    </svg>
+  </div>
+
+  <div class="cam-topbar">
+    <button class="btn-back" onclick="cancelCalibration()">← Abbrechen</button>
+    <span class="cam-title">Kompass-Kalibrierung</span>
+    <div class="cam-gps">
+      <div class="gps-dot" id="gpsD-cal"></div>
+      <span id="gpsT-cal">GPS…</span>
+    </div>
+  </div>
+
+  <div class="cal-instruction" id="calStep1Hint">
+    <div class="cal-step">Schritt 1 / 2</div>
+    <div class="cal-text">
+      Such dir einen <strong>festen Bezugspunkt</strong> in 50–200 m
+      (Baum, Mast, Hütte, Eckpunkt). Visiere ihn im Fadenkreuz an und tippe SNAP.
+    </div>
+  </div>
+
+  <div id="mark-step1-cal">
+    <div style="flex:1;"></div>
+    <div class="cam-bottom" style="position:relative;padding-top:0;">
+      <button class="btn-aim" id="btnCalSnap" onclick="calSnapAim()">
+        ◎ &nbsp; Bezugspunkt erfassen
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ KALIBRIERUNG: KARTE ════════════════ -->
+<div id="s-cal-map">
+  <div class="cam-topbar" style="z-index:20;">
+    <button class="btn-back" onclick="goBackToCalSnap()">← Erneut</button>
+    <span class="cam-title">Schritt 2 / 2</span>
+    <div style="width:40px;"></div>
+  </div>
+
+  <div class="cal-map-hint">
+    Tippe auf der Karte den <strong>echten Standort</strong> deines Bezugspunkts an.
+    Du kannst mehrmals tippen, um die Position zu justieren.
+  </div>
+
+  <div id="cal-map" style="position:absolute;left:0;right:0;top:120px;bottom:90px;"></div>
+
+  <div class="cam-bottom" style="position:absolute;left:0;right:0;bottom:0;padding:14px 16px;background:rgba(0,0,0,0.65);backdrop-filter:blur(8px);">
+    <div id="calOffsetPreview" style="text-align:center;color:rgba(255,255,255,0.7);font-family:var(--mono);font-size:14px;margin-bottom:10px;">Tippe einen Punkt auf der Karte</div>
+    <button class="btn-confirm" id="btnCalConfirm" disabled onclick="confirmCalibration()" style="width:100%;">
+      ✓ &nbsp; Versatz speichern
+    </button>
   </div>
 </div>
 
@@ -411,6 +492,7 @@
 <script src="js/navigation.js"></script>
 <script src="js/mark.js"></script>
 <script src="js/home.js"></script>
+<script src="js/calibration.js"></script>
 <script src="js/splash.js"></script>
 <script src="js/app.js"></script>
 

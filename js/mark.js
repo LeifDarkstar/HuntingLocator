@@ -52,16 +52,20 @@ function snapAim() {
   // Robuster Snap-Heading: zirkulärer Mittelwert der letzten N Samples.
   // Glättet einzelne Glitch-Frames raus (Magnetometer wirft selten mal einen
   // Ausreißer, der bei "nimm den letzten Wert" voll durchschlägt).
-  const snapHeading = circularMeanHeading(S.headingBuf, S.heading);
+  const rawSnapHeading = circularMeanHeading(S.headingBuf, S.heading);
+  // Kompass-Versatz anwenden (Geräte-spezifische Kalibrierung)
+  const snapHeading = applyCompassOffset(rawSnapHeading);
 
   S.snap = {
-    tilt:        S.tilt,
-    heading:     snapHeading,
-    headingAcc:  S.headingAcc,
-    lat:         snapLat,
-    lon:         snapLon,
-    alt:         snapAlt,
-    acc:         snapAcc,
+    tilt:           S.tilt,
+    heading:        snapHeading,        // mit Offset korrigiert
+    headingRaw:     rawSnapHeading,     // ohne Offset (für Doku/Debug)
+    headingAcc:     S.headingAcc,
+    compassOffset:  getCompassOffset(),
+    lat:            snapLat,
+    lon:            snapLon,
+    alt:            snapAlt,
+    acc:            snapAcc,
   };
 
   document.getElementById('snapHead').textContent = S.heading + '\u00b0';
@@ -112,7 +116,9 @@ function doMark() {
     meta: {
       snapDist:        dist,
       snapHeading:     S.snap.heading,
-      snapHeadingAcc:  S.snap.headingAcc,   // Kompass-Genauigkeit beim Snap, in Grad (iOS)
+      snapHeadingRaw:  S.snap.headingRaw,    // ohne Kompass-Offset
+      snapHeadingAcc:  S.snap.headingAcc,    // Kompass-Genauigkeit beim Snap, in Grad (iOS)
+      compassOffset:   S.snap.compassOffset, // welche Offset-Korrektur galt
       snapTilt:        S.snap.tilt,
       shooterLat:      S.snap.lat,
       shooterLon:      S.snap.lon,

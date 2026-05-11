@@ -227,3 +227,46 @@ const CAM_VFOV = 50;
 
 // ── GPS rolling buffer ────────────────────
 const GPS_BUF = [];
+
+// ══════════════════════════════════════════
+// KOMPASS-KALIBRIERUNG
+// ══════════════════════════════════════════
+// Permanenter Versatz, der den Geräte-spezifischen Kompass-Bias ausgleicht.
+// Wird in localStorage gespeichert → überlebt App-Schließen, Neustart, Updates.
+//
+//   getCompassOffset() → Zahl in Grad (signiert). 0 = keine Kalibrierung.
+//   setCompassOffset(deg) → speichert dauerhaft.
+//   resetCompassOffset() → löscht.
+//
+// Anwendung: snapHeading_korrigiert = snapHeading_roh - offset
+
+function getCompassOffset() {
+  if (typeof loadValue !== 'function') return 0;
+  const stored = loadValue('compassOffset', null);
+  if (!stored || typeof stored.degrees !== 'number') return 0;
+  return stored.degrees;
+}
+
+function getCompassOffsetInfo() {
+  if (typeof loadValue !== 'function') return null;
+  return loadValue('compassOffset', null);   // { degrees, date } oder null
+}
+
+function setCompassOffset(degrees) {
+  if (typeof saveValue !== 'function') return false;
+  return saveValue('compassOffset', {
+    degrees: degrees,
+    date:    new Date().toISOString(),
+  });
+}
+
+function resetCompassOffset() {
+  if (typeof deleteValue !== 'function') return false;
+  return deleteValue('compassOffset');
+}
+
+// Anwendung auf einen Roh-Heading
+function applyCompassOffset(rawHeading) {
+  const off = getCompassOffset();
+  return ((rawHeading - off) % 360 + 360) % 360;
+}

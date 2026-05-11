@@ -159,6 +159,71 @@
 }
 .btn-aim:active { opacity: 0.8; }
 
+/* ── Kalibrierung ── */
+.cal-instruction {
+  position: absolute;
+  z-index: 18;
+  left: 16px;
+  right: 16px;
+  top: calc(env(safe-area-inset-top, 14px) + 96px);
+  background: rgba(0, 0, 0, 0.72);
+  border: 1px solid rgba(201, 162, 39, 0.35);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: var(--bright);
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.45;
+  backdrop-filter: blur(6px);
+}
+.cal-instruction .cal-step {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.cal-instruction .cal-text strong {
+  color: var(--accent2);
+}
+
+#s-cal-map {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 11;
+  background: #000;
+}
+#s-cal-map.on { display: block; }
+
+.cal-map-hint {
+  position: absolute;
+  z-index: 14;
+  left: 12px;
+  right: 12px;
+  top: calc(env(safe-area-inset-top, 14px) + 60px);
+  background: rgba(0, 0, 0, 0.72);
+  border: 1px solid rgba(201, 162, 39, 0.35);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--bright);
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.4;
+  backdrop-filter: blur(6px);
+}
+.cal-map-hint strong { color: var(--accent2); }
+
+#btnCalConfirm[disabled] {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.cal-entry {
+  margin-top: 14px;
+  opacity: 0.85;
+}
+
 /* Snap-Button gesperrt (GPS schlecht / wartet) */
 .btn-aim.disabled {
   opacity: 0.45;
@@ -438,15 +503,16 @@
   backdrop-filter: blur(4px);
 }
 .nstat .nl {
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--dim);
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 .nstat .nv {
   font-family: var(--mono);
-  font-size: 16px;
+  font-size: 22px;
+  font-weight: 600;
   color: var(--bright);
 }
 .nstat .nv.close { color: var(--accent); }

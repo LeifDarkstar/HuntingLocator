@@ -22,6 +22,9 @@ function saveStandort(type) {
     lat:   S.lat,
     lon:   S.lon,
     alt:   S.alt != null ? S.alt : 0,
+    meta: {
+      shooterAcc: S.acc,   // GPS-Genauigkeit beim Speichern, für den Suchradius-Kreis
+    },
   });
 
   closeTypePicker();

@@ -111,6 +111,7 @@ function goRubrik(name) {
     document.getElementById('s-home').classList.add('on');
     updateSavedDistances();
     updateHomeMapPlayer();
+    if (typeof refreshCalibrationStatus === 'function') refreshCalibrationStatus();
   } else if (name === 'mark') {
     document.getElementById('s-mark-menu').classList.add('on');
   } else {

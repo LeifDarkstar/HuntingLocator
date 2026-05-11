@@ -13,6 +13,21 @@ async function getCamStream() {
       },
       audio: false,
     });
+    // Continuous Autofocus anfordern, falls vom Browser unterstützt.
+    // iOS Safari (neuere Versionen) und Android Chrome unterstützen das in der
+    // Regel. Fällt still zurück, wenn nicht.
+    try {
+      const track = S.stream.getVideoTracks()[0];
+      if (track && typeof track.applyConstraints === 'function') {
+        await track.applyConstraints({
+          advanced: [
+            { focusMode: 'continuous' },
+            { exposureMode: 'continuous' },
+            { whiteBalanceMode: 'continuous' },
+          ],
+        });
+      }
+    } catch (e) { /* Browser unterstützt keine Fokus-Steuerung — egal */ }
     return S.stream;
   } catch (e) {
     toast('Kamera verweigert – Einstellungen → Safari → Kamera → Erlauben', true);

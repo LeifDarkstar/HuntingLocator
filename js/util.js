@@ -35,6 +35,35 @@ function calcBearing(a, b, c, d) {
   return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
 }
 
+// ── PERSISTENTER SPEICHER (localStorage) ────
+// Speichert kleine Werte (z.B. Kompass-Offset) lokal im Browser.
+// Überlebt App-Schließen, App-Updates, iPhone-Neustart.
+// Wird gelöscht: bei "Websitedaten löschen" oder iOS-Cleanup nach Wochen Nichtnutzung.
+const STORAGE_PREFIX = 'hound.';
+
+function loadValue(key, fallback) {
+  try {
+    const raw = localStorage.getItem(STORAGE_PREFIX + key);
+    if (raw == null) return fallback;
+    const parsed = JSON.parse(raw);
+    return parsed != null ? parsed : fallback;
+  } catch (e) { return fallback; }
+}
+
+function saveValue(key, value) {
+  try {
+    localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(value));
+    return true;
+  } catch (e) { return false; }
+}
+
+function deleteValue(key) {
+  try {
+    localStorage.removeItem(STORAGE_PREFIX + key);
+    return true;
+  } catch (e) { return false; }
+}
+
 // ── HEADING MITTELWERT ────────────────────
 // Zirkulärer Mittelwert von Heading-Werten (in Grad) — wraparound-sicher.
 // Beispiel: avg([359°, 1°]) = 0°, NICHT 180°.

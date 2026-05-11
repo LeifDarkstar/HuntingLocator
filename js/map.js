@@ -5,6 +5,7 @@
 let _homeMap = null;
 let _homeMapActive = false;
 let _homeMapMarkers = {};
+let _homeMapAccuracyCircles = {};   // type → L.circle (Suchradius)
 let _homePlayerMarker = null;
 
 // Pfade zu den Icon-Dateien (extrahiert aus Base64)
@@ -126,6 +127,10 @@ function updateHomeMapMarkers() {
         _homeMap.removeLayer(_homeMapMarkers[type]);
         delete _homeMapMarkers[type];
       }
+      if (_homeMapAccuracyCircles[type]) {
+        _homeMap.removeLayer(_homeMapAccuracyCircles[type]);
+        delete _homeMapAccuracyCircles[type];
+      }
       return;
     }
     const pinIcon = createMapPinIcon(iconSrc, label);
@@ -133,6 +138,30 @@ function updateHomeMapMarkers() {
       _homeMapMarkers[type].setLatLng([t.lat, t.lon]).setIcon(pinIcon);
     } else {
       _homeMapMarkers[type] = L.marker([t.lat, t.lon], { icon: pinIcon }).addTo(_homeMap);
+    }
+
+    // Suchradius-Kreis: zeigt die GPS-Unsicherheit beim Snap visuell.
+    // Nur sinnvoll, wenn wir die Snap-Genauigkeit gespeichert haben (Anschuss).
+    // Mindestradius 5 m, damit man bei sehr gutem GPS überhaupt was sieht.
+    const acc = (t.meta && t.meta.shooterAcc) ? t.meta.shooterAcc : null;
+    if (acc != null && acc > 0) {
+      const radius = Math.max(5, acc);
+      if (_homeMapAccuracyCircles[type]) {
+        _homeMapAccuracyCircles[type].setLatLng([t.lat, t.lon]).setRadius(radius);
+      } else {
+        _homeMapAccuracyCircles[type] = L.circle([t.lat, t.lon], {
+          radius:      radius,
+          color:       '#4a90d9',
+          weight:      1.5,
+          opacity:     0.6,
+          fillColor:   '#4a90d9',
+          fillOpacity: 0.15,
+          interactive: false,
+        }).addTo(_homeMap);
+      }
+    } else if (_homeMapAccuracyCircles[type]) {
+      _homeMap.removeLayer(_homeMapAccuracyCircles[type]);
+      delete _homeMapAccuracyCircles[type];
     }
   });
 }
