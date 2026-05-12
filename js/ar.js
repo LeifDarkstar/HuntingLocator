@@ -334,8 +334,9 @@ function renderHomeAR() {
     // ── Suchradius-Kreis ──
     // Sichtbar nur wenn (a) Pin onScreen ist, (b) wir die Snap-Genauigkeit haben.
     // Größe = Winkel-Durchmesser auf Pixel projiziert. Bei nahem Pin → großer Kreis,
-    // bei fernem Pin → kleiner Kreis. Etwas elliptisch (Höhe ~45% der Breite) als
-    // dezenter Hinweis auf Bodenprojektion.
+    // bei fernem Pin → kleiner Kreis. Kreisrund (keine Boden-Ellipse), zentriert um
+    // die PIN-MITTE (nicht die Pin-Spitze), damit der Pin im Kreis steht.
+    // z-index: Pin (15) > Kreis (14) — Pin wird also über dem Kreis gerendert.
     const circle = document.getElementById('ar-circle-' + type);
     if (circle) {
       const acc = (t.meta && t.meta.shooterAcc) ? t.meta.shooterAcc : null;
@@ -343,14 +344,21 @@ function renderHomeAR() {
         const HFOV_rad = CAM_HFOV * Math.PI / 180;
         const angDiameterRad = (2 * acc) / dist;       // kleine Winkel ≈ tan
         const widthPx  = angDiameterRad * (sw / HFOV_rad);
-        const heightPx = widthPx * 0.45;
-        const w = Math.max(28, Math.round(widthPx));
-        const h = Math.max(14, Math.round(heightPx));
+        // Mindestgröße: groß genug, dass der Pin INNERHALB sichtbar liegt
+        const minSize  = 60;
+        const d        = Math.max(minSize, Math.round(widthPx));
+
+        // Pin-Höhe (offsetHeight = echte gerenderte Pixel-Höhe nach Layout).
+        // Wir verschieben den Kreis-Mittelpunkt um pinH/2 nach oben, damit
+        // er auf der Pin-Mitte sitzt statt auf der Pin-Spitze.
+        const pinImg = dot.querySelector('img');
+        const pinH   = (pinImg && pinImg.offsetHeight) ? pinImg.offsetHeight : 70;
+
         circle.style.display = 'block';
         circle.style.left    = screenX + 'px';
-        circle.style.top     = screenY + 'px';
-        circle.style.width   = w + 'px';
-        circle.style.height  = h + 'px';
+        circle.style.top     = (screenY - pinH / 2) + 'px';
+        circle.style.width   = d + 'px';
+        circle.style.height  = d + 'px';      // kreisrund, nicht elliptisch
       } else {
         circle.style.display = 'none';
       }
