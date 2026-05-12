@@ -28,7 +28,10 @@ function toggleHomeMap() {
     camVid.style.opacity = '0';
     const arAnschuss   = document.getElementById('ar-anschuss');
     const edgeAnschuss = document.getElementById('edge-anschuss');
-    [arHoch, arAuto, edgeH, edgeA, arAnschuss, edgeAnschuss].forEach(el => {
+    const circHoch     = document.getElementById('ar-circle-hochsitz');
+    const circAuto     = document.getElementById('ar-circle-auto');
+    const circAnschuss = document.getElementById('ar-circle-anschuss');
+    [arHoch, arAuto, edgeH, edgeA, arAnschuss, edgeAnschuss, circHoch, circAuto, circAnschuss].forEach(el => {
       if (el) { el.style.display = 'none'; el.style.visibility = 'hidden'; }
     });
     btn.textContent = '📷 AR';
@@ -39,7 +42,10 @@ function toggleHomeMap() {
     camVid.style.opacity = '1';
     const arAnschuss2   = document.getElementById('ar-anschuss');
     const edgeAnschuss2 = document.getElementById('edge-anschuss');
-    [arHoch, arAuto, edgeH, edgeA, arAnschuss2, edgeAnschuss2].forEach(el => {
+    const circHoch2     = document.getElementById('ar-circle-hochsitz');
+    const circAuto2     = document.getElementById('ar-circle-auto');
+    const circAnschuss2 = document.getElementById('ar-circle-anschuss');
+    [arHoch, arAuto, edgeH, edgeA, arAnschuss2, edgeAnschuss2, circHoch2, circAuto2, circAnschuss2].forEach(el => {
       if (el) { el.style.display = ''; el.style.visibility = ''; }
     });
     btn.textContent = '🗺 Karte';

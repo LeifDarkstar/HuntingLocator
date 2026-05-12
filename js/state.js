@@ -137,9 +137,21 @@ function setSingletonTarget(type, props) {
 
 // ── Hook nach jeder Änderung ──────────────
 function _afterTargetChange() {
+  if (typeof saveValue === 'function') saveValue('targets', TARGETS);
   if (typeof updateAllMapMarkers === 'function') updateAllMapMarkers();
   if (typeof updateNavButton    === 'function') updateNavButton();
   if (typeof refreshHomeMenu    === 'function') refreshHomeMenu();
+}
+
+// ── Targets aus localStorage wiederherstellen ──
+// Muss nach dem Laden aller Scripts aufgerufen werden (in app.js).
+function restoreTargets() {
+  if (typeof loadValue !== 'function') return;
+  const saved = loadValue('targets', []);
+  if (!Array.isArray(saved) || saved.length === 0) return;
+  saved.forEach(t => {
+    if (t && t.type && t.lat != null && t.lon != null) TARGETS.push(t);
+  });
 }
 
 // ══════════════════════════════════════════

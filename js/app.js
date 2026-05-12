@@ -4,6 +4,9 @@
    ══════════════════════════════════════════ */
 
 window.addEventListener('load', () => {
+  // Gespeicherte Ziele (Hochsitz, Auto, Anschuss) aus localStorage laden
+  restoreTargets();
+
   // Nav-Button direkt beim Start initialisieren
   updateNavButton();
 
