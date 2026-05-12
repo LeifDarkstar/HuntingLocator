@@ -331,34 +331,47 @@ function renderHomeAR() {
       edge.style.transform = 'translate(-50%,-50%) rotate(' + ea + 'deg)';
     }
 
-    // ── Suchradius-Kreis ──
+    // ── Suchradius-Kreis (Boden-Disc, perspektivisch) ──
     // Sichtbar nur wenn (a) Pin onScreen ist, (b) wir die Snap-Genauigkeit haben.
-    // Größe = Winkel-Durchmesser auf Pixel projiziert. Bei nahem Pin → großer Kreis,
-    // bei fernem Pin → kleiner Kreis. Kreisrund (keine Boden-Ellipse), zentriert um
-    // die PIN-MITTE (nicht die Pin-Spitze), damit der Pin im Kreis steht.
-    // z-index: Pin (15) > Kreis (14) — Pin wird also über dem Kreis gerendert.
+    //
+    // Geometrie:
+    //   • Mittelpunkt = Pin-Spitze (= echte Ziel-Koordinate auf dem Boden)
+    //   • Breite      = angularer Durchmesser × Pixel-pro-Radiant (Standard-Projektion)
+    //   • Höhe        = Breite × sin(Sichtwinkel zur Disc-Ebene)
+    //         → nahes Ziel: Sichtwinkel groß → Aspekt ~1 (fast Kreis)
+    //         → fernes Ziel: Sichtwinkel klein → Aspekt klein (flache Ellipse)
+    //   • Wenn der Nutzer das Telefon stärker nach unten kippt, wirkt die Disc
+    //     rundlicher — wir mischen den natürlichen Sichtwinkel mit |S.tilt|.
+    //
+    // z-index: Pin (15) > Kreis (14) → Pin liegt über dem Kreis.
     const circle = document.getElementById('ar-circle-' + type);
     if (circle) {
       const acc = (t.meta && t.meta.shooterAcc) ? t.meta.shooterAcc : null;
       if (onScreen && acc != null && acc > 0 && dist > 0.5) {
         const HFOV_rad = CAM_HFOV * Math.PI / 180;
-        const angDiameterRad = (2 * acc) / dist;       // kleine Winkel ≈ tan
+        const angDiameterRad = (2 * acc) / dist;            // kleine Winkel ≈ tan
         const widthPx  = angDiameterRad * (sw / HFOV_rad);
-        // Mindestgröße: groß genug, dass der Pin INNERHALB sichtbar liegt
-        const minSize  = 60;
-        const d        = Math.max(minSize, Math.round(widthPx));
 
-        // Pin-Höhe (offsetHeight = echte gerenderte Pixel-Höhe nach Layout).
-        // Wir verschieben den Kreis-Mittelpunkt um pinH/2 nach oben, damit
-        // er auf der Pin-Mitte sitzt statt auf der Pin-Spitze.
-        const pinImg = dot.querySelector('img');
-        const pinH   = (pinImg && pinImg.offsetHeight) ? pinImg.offsetHeight : 70;
+        // Sichtwinkel auf eine Boden-Disc: arctan(Kamerahöhe / Distanz).
+        // Bei Telefon-Tilt nach unten erhöht sich der gefühlte Sichtwinkel —
+        // wir nehmen das Maximum aus Natur-Winkel und |Tilt|.
+        const CAMERA_HEIGHT_M  = 1.6;
+        const naturalAngleRad  = Math.atan(CAMERA_HEIGHT_M / Math.max(dist, 0.1));
+        const tiltDeg          = (typeof S.tilt === 'number' && !isNaN(S.tilt)) ? S.tilt : 0;
+        const tiltRad          = Math.abs(tiltDeg) * Math.PI / 180;
+        const effectiveAngle   = Math.max(naturalAngleRad, tiltRad);
+        // Mindest-Aspekt 0.12 sonst wird die Ellipse zur unsichtbaren Linie
+        const aspect           = Math.max(0.12, Math.sin(effectiveAngle));
+
+        const w = Math.max(60, Math.round(widthPx));
+        const h = Math.max(10, Math.round(w * aspect));
 
         circle.style.display = 'block';
-        circle.style.left    = screenX + 'px';
-        circle.style.top     = (screenY - pinH / 2) + 'px';
-        circle.style.width   = d + 'px';
-        circle.style.height  = d + 'px';      // kreisrund, nicht elliptisch
+        circle.style.left    = screenX + 'px';       // Mitte = Pin-Spitze
+        circle.style.top     = screenY + 'px';
+        circle.style.width   = w + 'px';
+        circle.style.height  = h + 'px';
+        // border-radius: 50% kommt aus css/home.css → bei width ≠ height: Ellipse
       } else {
         circle.style.display = 'none';
       }

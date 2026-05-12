@@ -141,24 +141,34 @@ function updateHomeMapMarkers() {
     }
 
     // Suchradius-Kreis: zeigt die GPS-Unsicherheit beim Snap visuell.
-    // Nur sinnvoll, wenn wir die Snap-Genauigkeit gespeichert haben (Anschuss).
-    // Mindestradius 5 m, damit man bei sehr gutem GPS überhaupt was sieht.
+    // Zentriert exakt auf t.lat/t.lon → Pin-Spitze ist Kreis-Mittelpunkt.
+    // Radius in Metern. Wir clampen auf [2, 25] m, damit
+    //   (a) der Kreis bei sehr gutem GPS sichtbar bleibt,
+    //   (b) verhauene shooterAcc-Werte nicht zu absurd großen Kreisen führen.
+    // Force-recreate bei jedem Update (statt setLatLng/setRadius) — eliminiert
+    // alle stale-state-Probleme nach Service-Worker-Refresh.
     const acc = (t.meta && t.meta.shooterAcc) ? t.meta.shooterAcc : null;
     if (acc != null && acc > 0) {
-      const radius = Math.max(5, acc);
+      const radius = Math.max(2, Math.min(25, acc));
+
       if (_homeMapAccuracyCircles[type]) {
-        _homeMapAccuracyCircles[type].setLatLng([t.lat, t.lon]).setRadius(radius);
-      } else {
-        _homeMapAccuracyCircles[type] = L.circle([t.lat, t.lon], {
-          radius:      radius,
-          color:       '#4a90d9',
-          weight:      1.5,
-          opacity:     0.6,
-          fillColor:   '#4a90d9',
-          fillOpacity: 0.15,
-          interactive: false,
-        }).addTo(_homeMap);
+        _homeMap.removeLayer(_homeMapAccuracyCircles[type]);
+        delete _homeMapAccuracyCircles[type];
       }
+      _homeMapAccuracyCircles[type] = L.circle([t.lat, t.lon], {
+        radius:      radius,
+        color:       '#4a90d9',
+        weight:      1.5,
+        opacity:     0.8,
+        fillColor:   '#4a90d9',
+        fillOpacity: 0.20,
+        interactive: false,
+      }).addTo(_homeMap);
+
+      // Debug-Log: sieht man in Safari → Web-Inspector → Konsole
+      console.log('[map-circle]', type,
+        '@', t.lat.toFixed(5), t.lon.toFixed(5),
+        'r=', radius, 'm (acc=', acc, ')');
     } else if (_homeMapAccuracyCircles[type]) {
       _homeMap.removeLayer(_homeMapAccuracyCircles[type]);
       delete _homeMapAccuracyCircles[type];
