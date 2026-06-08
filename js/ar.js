@@ -36,9 +36,12 @@ function renderAR() {
   while (hDiff < -180) hDiff += 360;
 
   // ── Vertikal: Kamera-Neigung berücksichtigen ──
-  // (Schritt 3 wird das mit Barometer + altDiff noch verfeinern)
-  const tilt = (typeof S.tilt === 'number' && !isNaN(S.tilt)) ? S.tilt : 0;
-  const vDiff = -tilt;
+  // snapTilt = Tilt-Winkel beim Snap (gespeichert in meta).
+  // Der Pin liegt genau dann in der Bildmitte wenn tilt == snapTilt.
+  // Tiltet man darüber hinaus, wandert der Pin aus dem Bild → edge-arrow greift.
+  const tilt     = (typeof S.tilt === 'number' && !isNaN(S.tilt)) ? S.tilt : 0;
+  const snapTilt = (tgt.meta && tgt.meta.snapTilt != null) ? tgt.meta.snapTilt : 0;
+  const vDiff    = tilt - snapTilt;
 
   const sw = window.innerWidth;
   const sh = window.innerHeight;
@@ -297,10 +300,11 @@ function renderHomeAR() {
       while (hDiff < -180) hDiff += 360;
 
       // Vertikal: Kamera-Neigung berücksichtigen.
-      // Annahme: Ziel auf gleicher Höhe (altDiff=0) — Schritt 3 wird das
-      // mit dem Barometer noch verfeinern.
-      const tilt = (typeof S.tilt === 'number' && !isNaN(S.tilt)) ? S.tilt : 0;
-      const vDiff = -tilt;
+      // snapTilt = Tilt beim Snap (in meta). Pin liegt in Bildmitte wenn
+      // tilt == snapTilt. Für hochsitz/auto ohne Snap: snapTilt=0 (Augenhöhe).
+      const tilt     = (typeof S.tilt === 'number' && !isNaN(S.tilt)) ? S.tilt : 0;
+      const snapTilt = (t.meta && t.meta.snapTilt != null) ? t.meta.snapTilt : 0;
+      const vDiff    = tilt - snapTilt;
 
       const xPx = ( hDiff / (CAM_HFOV / 2)) * (sw / 2);
       const yPx = (-vDiff / (CAM_VFOV / 2)) * (sh / 2);

@@ -148,7 +148,17 @@ async function goGlobalNav() {
     return;
   }
   await requestOri();
-  document.getElementById('s-main').classList.remove('on');
+
+  // Alle anderen Screens sauber ausblenden + Kamera/Loops stoppen
+  ['s-main', 's-home', 's-mark', 's-nav', 's-mark-menu'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('on');
+  });
+  detachCam('vid-mark');
+  detachCam('vid-nav');
+  stopAlarm();
+  stopARLoop();
+
   const nav = document.getElementById('s-home-nav');
   nav.classList.add('on');
   await attachCam('vid-home-nav');

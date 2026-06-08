@@ -358,6 +358,73 @@ Er kann **nicht**:
 
 ---
 
+## 12. Track — Feature-Design (Brainstorming Mai 2026)
+
+### 12.1 Ziel
+
+Wenn ein Tier verwundet wurde und kein Hund dabei ist: die App hilft die Blutspur
+zu verfolgen und vorherzusagen wo das Tier als nächstes sein könnte.
+
+Primärer Use Case: tödlicher Treffer, Tier läuft noch 0–100m. Darüber hinaus
+braucht man einen Hund — das ist eine bewusste Grenze.
+
+### 12.2 Kernkonzept
+
+- Erster **real gefundener Bluttropfen** = Startpunkt (nicht der Anschuss — zu
+  Beginn fließt oft noch kein Blut durch Schock und Adrenalin)
+- Jeden weiteren Blutpunkt per Tap markieren
+- GPS pro Punkt (±10m Fehler ist ok — die Richtung über mehrere Punkte stimmt)
+- Lineare Regression / gewichteter Richtungsmittelwert über alle Punkte → stabile
+  Vorhersage-Richtung auch bei verrauschten Einzelpunkten
+- Neuere Punkte werden stärker gewichtet (Tier kann die Richtung ändern)
+
+### 12.3 Die zwei Kernelemente
+
+**Richtungskegel (Karten-Ansicht):**
+- Zeigt Blutspur als rote Tropfen auf der Karte
+- Kegel ab 3 Punkten: Richtung + Öffnungswinkel
+- Öffnungswinkel wird enger je mehr Punkte vorhanden sind → man sieht sofort
+  wie sicher die Vorhersage ist
+- 3 Punkte = breiter Kegel (hohe Unsicherheit), 8+ Punkte = enger Kegel (hohes
+  Vertrauen)
+
+**Vorhergesagter nächster Punkt (AR-Ansicht):**
+- AR-Kreis im Kamerabild zeigt wo der nächste Blutpunkt sein könnte
+- Kreis wird kleiner je mehr Punkte gesammelt wurden
+- Tier nicht gefunden → zurück zum letzten Punkt, kreisen → AR-Kreis bleibt als
+  Orientierung sichtbar
+- Neuer Punkt außerhalb des Kreises → Vorhersage korrigiert sich automatisch
+
+### 12.4 UX-Prinzipien
+
+- iPhone bleibt in der Hand, eine Hand, langsames Bewegen durch Gelände
+- **Tap-Button nimmt halben Screen ein** — blind bedienbar während man auf den
+  Boden schaut
+- Toggle AR ↔ Karte (wie in Home-Nav)
+- **Undo-Button**: letzten Punkt löschen (Fehltap passiert)
+- Keine Texteingaben, kein Scrollen, keine Ablenkung
+- Bei Wildschweinen: man geht zu zweit mit Waffe → App muss auch einhändig mit
+  Waffe in der anderen Hand funktionieren
+
+### 12.5 Technik-Skizze
+
+```
+Punkte:       GPS-Koordinaten array (lat, lon, timestamp)
+Richtung:     gewichteter Durchschnitt der Vektoren zwischen Punkten,
+              neuere Punkte 2× gewichtet
+Vorhersage:   letzter Punkt + Richtung × durchschnittlicher Punktabstand
+Kreis-Radius: Streuung der letzten Peilungen × Vorhersage-Distanz
+Kegel:        Öffnungswinkel = arctan(Streuung), min ~10°, max ~60°
+```
+
+### 12.6 Offen / noch zu klären
+
+- Fotoanalyse der Schusslage (KI) war in alter Projektdoku erwähnt — Priorität?
+- Spur wird nach Fund des Tieres gespeichert (Lerneffekt, später Wolfpack-Teilen)
+- Wolfpack-Integration: Spur mit anderen Jägern teilen?
+
+---
+
 ## 11. Zugehörige Dokumente
 
 - `hound_projektdoku.docx` — die alte, ausführliche Projektdoku (April 2026).
