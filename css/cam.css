@@ -484,10 +484,10 @@
 .nav-stats {
   position: absolute;
   z-index: 20;
-  top: 0;
+  top: 50%;
+  transform: translateY(-50%);
   left: 0;
   right: 0;
-  padding-top: calc(env(safe-area-inset-top, 14px) + 62px);
   padding-left: 16px;
   padding-right: 16px;
   display: flex;

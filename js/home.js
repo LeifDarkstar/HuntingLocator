@@ -78,7 +78,17 @@ async function goHomeNav() {
     return;
   }
   await requestOri();
-  document.getElementById('s-home').classList.remove('on');
+
+  // Alle anderen Screens sauber ausblenden (defensiv gegen Überlagerungen)
+  ['s-main', 's-home', 's-mark', 's-nav', 's-mark-menu'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('on');
+  });
+  detachCam('vid-mark');
+  detachCam('vid-nav');
+  stopAlarm();
+  if (typeof stopARLoop === 'function') stopARLoop();
+
   const nav = document.getElementById('s-home-nav');
   nav.classList.add('on');
   await attachCam('vid-home-nav');
