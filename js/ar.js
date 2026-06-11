@@ -6,6 +6,12 @@
    Vertikale Position ist derzeit fix auf -3°.
    ══════════════════════════════════════════ */
 
+// ── Tilt-Glättung (EMA) ───────────────────
+// Dämpft Handwackeln beim Gehen (~2-4 Hz) weg.
+// Alpha 0.15: ~7 Frames Zeitkonstante bei 60fps ≈ 0.1 s.
+// Langsames Kippen (0.5 Hz) folgt sauber; Laufzittern (~4 Hz) wird ~90 % reduziert.
+let _tiltEMA = null;
+
 // ── AR: Mark-Nav (Anschuss) ────────────────
 function renderAR() {
   const tgt = getActiveAnschuss();
@@ -35,12 +41,15 @@ function renderAR() {
   while (hDiff >  180) hDiff -= 360;
   while (hDiff < -180) hDiff += 360;
 
-  // ── Vertikal: fixe Position basierend auf Snap-Winkel ──
-  // vDiff wird NICHT mit aktuellem Tilt aktualisiert — sonst wippt der Pin
-  // mit jeder Handbewegung. Der Pin sitzt fest an der Snap-Position:
-  // snapTilt=0 (flach) → Pin in Bildmitte; snapTilt<0 (Berg) → Pin oben.
+  // ── Vertikal: geglätteter Tilt − snapTilt ──
+  // EMA glättet Handwackeln weg. Pin folgt bewusstem Kippen (Berg hinauf/hinab),
+  // verschwindet bei zu starker Abweichung → edge-arrow übernimmt.
+  const rawTilt  = (typeof S.tilt === 'number' && !isNaN(S.tilt)) ? S.tilt : 0;
+  _tiltEMA = (_tiltEMA === null) ? rawTilt : (_tiltEMA * 0.85 + rawTilt * 0.15);
   const snapTilt = (tgt.meta && tgt.meta.snapTilt != null) ? tgt.meta.snapTilt : 0;
-  const vDiff    = -snapTilt;
+  // snapTilt − tiltEMA: positiver Wert = Ziel liegt über aktuellem Blickwinkel → Pin oben
+  // tiltEMA > snapTilt  = du schaust höher als das Ziel → Pin wandert nach unten, verschwindet
+  const vDiff    = snapTilt - _tiltEMA;
 
   const sw = window.innerWidth;
   const sh = window.innerHeight;
@@ -199,9 +208,12 @@ function updateDebugHud() {
   const hd   = (S.heading != null && !isNaN(S.heading)) ? (S.heading + '°') : '—';
   const hAcc = (S.headingAcc != null && S.headingAcc >= 0) ? ('±' + Math.round(S.headingAcc) + '°') : '?';
 
+  const tiltNow = (typeof S.tilt === 'number' && !isNaN(S.tilt)) ? S.tilt : '—';
+
   const lines = [
     'frame=' + _arFrameCount + ' alarm=' + (_homeAlarmActive ? 'AN' : 'aus'),
     'gps ' + lat + ',' + lon + ' ±' + acc + ' hd=' + hd + ' (' + hAcc + ')',
+    'tilt(aktuell)=' + tiltNow + '°',
   ];
 
   ['hochsitz', 'auto', 'anschuss'].forEach(type => {
@@ -210,7 +222,9 @@ function updateDebugHud() {
     if (S.lat == null) return;
     const d = haversine(S.lat, S.lon, t.lat, t.lon);
     const b = calcBearing(S.lat, S.lon, t.lat, t.lon);
-    lines.push(type.padEnd(8, ' ') + ' d=' + Math.round(d) + 'm b=' + Math.round(b) + '°');
+    const st = (t.meta && t.meta.snapTilt != null) ? t.meta.snapTilt : '—';
+    const vd = (t.meta && t.meta.snapTilt != null) ? -t.meta.snapTilt : 0;
+    lines.push(type.padEnd(8, ' ') + ' d=' + Math.round(d) + 'm b=' + Math.round(b) + '° snapTilt=' + st + '° vDiff=' + vd);
   });
 
   if (_arLastError) lines.push('ERR: ' + _arLastError);
@@ -298,10 +312,13 @@ function renderHomeAR() {
       while (hDiff >  180) hDiff -= 360;
       while (hDiff < -180) hDiff += 360;
 
-      // Vertikal: fixe Position basierend auf Snap-Winkel (kein aktueller Tilt).
-      // Hochsitz/Auto haben keinen Snap → snapTilt=0 → Pin in Bildmitte.
+      // Vertikal: geglätteter Tilt − snapTilt (EMA, geteilt mit renderAR).
+      // snapTilt − tiltEMA: positiver Wert = Ziel liegt über aktuellem Blickwinkel → Pin oben
+      // tiltEMA > snapTilt  = du schaust höher als das Ziel → Pin wandert nach unten, verschwindet
+      const rawTilt  = (typeof S.tilt === 'number' && !isNaN(S.tilt)) ? S.tilt : 0;
+      _tiltEMA = (_tiltEMA === null) ? rawTilt : (_tiltEMA * 0.85 + rawTilt * 0.15);
       const snapTilt = (t.meta && t.meta.snapTilt != null) ? t.meta.snapTilt : 0;
-      const vDiff    = -snapTilt;
+      const vDiff    = snapTilt - _tiltEMA;
 
       const xPx = ( hDiff / (CAM_HFOV / 2)) * (sw / 2);
       const yPx = (-vDiff / (CAM_VFOV / 2)) * (sh / 2);
