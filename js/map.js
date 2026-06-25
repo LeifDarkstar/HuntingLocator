@@ -7,6 +7,8 @@ let _homeMapActive = false;
 let _homeMapMarkers = {};
 let _homeMapAccuracyCircles = {};   // type → L.circle (Suchradius)
 let _homePlayerMarker = null;
+let _homeShooterMarker = null;      // Schützenstandort beim Anschuss (Diagnose + Feature)
+let _homeShotLine = null;           // gestrichelte Linie Schütze → Anschuss
 
 // Pfade zu den Icon-Dateien (extrahiert aus Base64)
 const HOCHSITZ_ICON = 'assets/icons/hochsitz.png';
@@ -180,6 +182,45 @@ function updateHomeMapMarkers() {
       delete _homeMapAccuracyCircles[type];
     }
   });
+
+  // ── Schützenstandort + Schusslinie (nur Anschuss) ──
+  // Zeigt wo der Schuss abgegeben wurde + gerade Linie zum Anschuss-Pin.
+  // Diagnose: Länge der Linie = berechnete Distanz Schütze→Anschuss.
+  // Stimmt sie nicht mit der gelaserten Entfernung überein, war ein
+  // Eingabewert (GPS/Heading/Distanz) beim Markieren falsch.
+  const an = GLOBAL_TARGETS['anschuss'];
+  if (an && an.meta && an.meta.shooterLat != null && an.meta.shooterLon != null) {
+    const sLat = an.meta.shooterLat, sLon = an.meta.shooterLon;
+
+    if (_homeShooterMarker) {
+      _homeShooterMarker.setLatLng([sLat, sLon]);
+    } else {
+      const shooterIcon = L.divIcon({
+        html:       '<div style="width:14px;height:14px;background:#c9a227;' +
+                    'border:2px solid #fff;border-radius:50%;' +
+                    'box-shadow:0 0 6px rgba(201,162,39,0.9);"></div>',
+        className:  '',
+        iconAnchor: [7, 7],
+      });
+      _homeShooterMarker = L.marker([sLat, sLon], { icon: shooterIcon, interactive: false })
+        .addTo(_homeMap);
+    }
+
+    if (_homeShotLine) {
+      _homeShotLine.setLatLngs([[sLat, sLon], [an.lat, an.lon]]);
+    } else {
+      _homeShotLine = L.polyline([[sLat, sLon], [an.lat, an.lon]], {
+        color:       '#c9a227',
+        weight:      2,
+        opacity:     0.7,
+        dashArray:   '6 6',
+        interactive: false,
+      }).addTo(_homeMap);
+    }
+  } else {
+    if (_homeShooterMarker) { _homeMap.removeLayer(_homeShooterMarker); _homeShooterMarker = null; }
+    if (_homeShotLine)      { _homeMap.removeLayer(_homeShotLine);      _homeShotLine = null; }
+  }
 }
 
 // ── Helfer: Konsistente Pin-Icons für die Karte ────

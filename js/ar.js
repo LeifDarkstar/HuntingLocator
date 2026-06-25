@@ -12,6 +12,9 @@
 // Langsames Kippen (0.5 Hz) folgt sauber; Laufzittern (~4 Hz) wird ~90 % reduziert.
 let _tiltEMA = null;
 
+// App-Version fürs Debug-HUD. WICHTIG: zusammen mit sw.js VERSION hochzählen!
+const AR_HUD_VERSION = 'v23-21';
+
 // ── AR: Mark-Nav (Anschuss) ────────────────
 function renderAR() {
   const tgt = getActiveAnschuss();
@@ -47,9 +50,10 @@ function renderAR() {
   const rawTilt  = (typeof S.tilt === 'number' && !isNaN(S.tilt)) ? S.tilt : 0;
   _tiltEMA = (_tiltEMA === null) ? rawTilt : (_tiltEMA * 0.85 + rawTilt * 0.15);
   const snapTilt = (tgt.meta && tgt.meta.snapTilt != null) ? tgt.meta.snapTilt : 0;
-  // snapTilt − tiltEMA: positiver Wert = Ziel liegt über aktuellem Blickwinkel → Pin oben
-  // tiltEMA > snapTilt  = du schaust höher als das Ziel → Pin wandert nach unten, verschwindet
-  const vDiff    = snapTilt - _tiltEMA;
+  // vDiff = tiltEMA − snapTilt. Per Foto-Test (v23-21) bestätigt: damit klebt
+  // der Pin an der realen Ziel-Elevation und wandert korrekt aus dem Bild,
+  // wenn man in eine andere Richtung tiltet. (snapTilt = Tilt beim Markieren.)
+  const vDiff    = _tiltEMA - snapTilt;
 
   const sw = window.innerWidth;
   const sh = window.innerHeight;
@@ -211,7 +215,7 @@ function updateDebugHud() {
   const tiltNow = (typeof S.tilt === 'number' && !isNaN(S.tilt)) ? S.tilt : '—';
 
   const lines = [
-    'frame=' + _arFrameCount + ' alarm=' + (_homeAlarmActive ? 'AN' : 'aus'),
+    AR_HUD_VERSION + '  frame=' + _arFrameCount + ' alarm=' + (_homeAlarmActive ? 'AN' : 'aus'),
     'gps ' + lat + ',' + lon + ' ±' + acc + ' hd=' + hd + ' (' + hAcc + ')',
     'tilt(aktuell)=' + tiltNow + '°',
   ];
@@ -223,8 +227,30 @@ function updateDebugHud() {
     const d = haversine(S.lat, S.lon, t.lat, t.lon);
     const b = calcBearing(S.lat, S.lon, t.lat, t.lon);
     const st = (t.meta && t.meta.snapTilt != null) ? t.meta.snapTilt : '—';
-    const vd = (t.meta && t.meta.snapTilt != null) ? -t.meta.snapTilt : 0;
+    const vd = (t.meta && t.meta.snapTilt != null && _tiltEMA != null)
+      ? Math.round(_tiltEMA - t.meta.snapTilt) : 0;
     lines.push(type.padEnd(8, ' ') + ' d=' + Math.round(d) + 'm b=' + Math.round(b) + '° snapTilt=' + st + '° vDiff=' + vd);
+
+    // Diagnose-Zeile: Eingabewerte beim Markieren vs. berechnete Geometrie.
+    //   laser       = eingegebene Entfernung
+    //   schütze→ziel = berechnete Distanz vom Schützenstandort zum Pin (sollte ≈ laser × cos(tilt))
+    //   ich→schütze  = wie weit ich gerade vom Schützenstandort weg bin
+    if (t.meta && t.meta.shooterLat != null && t.meta.shooterLon != null) {
+      const laser = (t.meta.snapDist != null) ? Math.round(t.meta.snapDist) : '—';
+      const shTgt = Math.round(haversine(t.meta.shooterLat, t.meta.shooterLon, t.lat, t.lon));
+      const meSh  = Math.round(haversine(S.lat, S.lon, t.meta.shooterLat, t.meta.shooterLon));
+      lines.push('  laser=' + laser + 'm schütze→ziel=' + shTgt + 'm ich→schütze=' + meSh + 'm');
+
+      // Kompass-Werte beim Markieren: zeigt ob ein Offset oder schlechte
+      // Kompass-Genauigkeit das Heading verdreht hat (Haupt-Verdächtiger
+      // für falsch platzierte Pins).
+      const snHd  = (t.meta.snapHeading    != null) ? Math.round(t.meta.snapHeading)    + '°' : '—';
+      const snRaw = (t.meta.snapHeadingRaw != null) ? Math.round(t.meta.snapHeadingRaw) + '°' : '—';
+      const snOff = (t.meta.compassOffset  != null) ? Math.round(t.meta.compassOffset)  + '°' : '—';
+      const snHAc = (t.meta.snapHeadingAcc != null && t.meta.snapHeadingAcc >= 0)
+        ? '±' + Math.round(t.meta.snapHeadingAcc) + '°' : '?';
+      lines.push('  snapHd=' + snHd + ' raw=' + snRaw + ' offset=' + snOff + ' hAcc=' + snHAc);
+    }
   });
 
   if (_arLastError) lines.push('ERR: ' + _arLastError);
@@ -313,12 +339,11 @@ function renderHomeAR() {
       while (hDiff < -180) hDiff += 360;
 
       // Vertikal: geglätteter Tilt − snapTilt (EMA, geteilt mit renderAR).
-      // snapTilt − tiltEMA: positiver Wert = Ziel liegt über aktuellem Blickwinkel → Pin oben
-      // tiltEMA > snapTilt  = du schaust höher als das Ziel → Pin wandert nach unten, verschwindet
+      // vDiff = tiltEMA − snapTilt → Pin klebt an realer Ziel-Elevation (Foto-Test v23-21).
       const rawTilt  = (typeof S.tilt === 'number' && !isNaN(S.tilt)) ? S.tilt : 0;
       _tiltEMA = (_tiltEMA === null) ? rawTilt : (_tiltEMA * 0.85 + rawTilt * 0.15);
       const snapTilt = (t.meta && t.meta.snapTilt != null) ? t.meta.snapTilt : 0;
-      const vDiff    = snapTilt - _tiltEMA;
+      const vDiff    = _tiltEMA - snapTilt;
 
       const xPx = ( hDiff / (CAM_HFOV / 2)) * (sw / 2);
       const yPx = (-vDiff / (CAM_VFOV / 2)) * (sh / 2);
