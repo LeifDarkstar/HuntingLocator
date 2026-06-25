@@ -4,6 +4,11 @@
    ══════════════════════════════════════════ */
 
 window.addEventListener('load', () => {
+  // Versions-Badge auf dem Splash aus der zentralen Konstante setzen
+  // (AR_HUD_VERSION lebt in ar.js → eine Stelle zum Hochzählen).
+  const verEl = document.getElementById('splashVersion');
+  if (verEl && typeof AR_HUD_VERSION === 'string') verEl.textContent = AR_HUD_VERSION;
+
   // Gespeicherte Ziele (Hochsitz, Auto, Anschuss) aus localStorage laden
   restoreTargets();
 
