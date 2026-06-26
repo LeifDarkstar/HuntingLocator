@@ -13,7 +13,7 @@
 let _tiltEMA = null;
 
 // App-Version fürs Debug-HUD. WICHTIG: zusammen mit sw.js VERSION hochzählen!
-const AR_HUD_VERSION = 'v23-21';
+const AR_HUD_VERSION = 'v23-22';
 
 // ── AR: Mark-Nav (Anschuss) ────────────────
 function renderAR() {
@@ -58,9 +58,15 @@ function renderAR() {
   const sw = window.innerWidth;
   const sh = window.innerHeight;
 
+  // Vertikales FOV aus horizontalem FOV + echtem Seitenverhältnis berechnen.
+  // CAM_VFOV als feste Konstante (50°) war zu klein → Pin reagierte ~2× zu
+  // stark auf Tilt und "wanderte". Im Hochformat (iPhone) ergibt sich ~108°,
+  // damit bewegt sich der Pin im selben Tempo wie die reale Welt → er klebt.
+  const vfov = 2 * Math.atan(Math.tan(CAM_HFOV * Math.PI / 360) * (sh / sw)) * 180 / Math.PI;
+
   // FOV-Projektion
   const xPxBase = ( hDiff / (CAM_HFOV / 2)) * (sw / 2);
-  const yPxBase = (-vDiff / (CAM_VFOV / 2)) * (sh / 2);
+  const yPxBase = (-vDiff / (vfov / 2)) * (sh / 2);
   const xPx = xPxBase * S.pinchZoom;
   const yPx = yPxBase * S.pinchZoom;
   const screenX = sw / 2 + xPx;
@@ -269,6 +275,8 @@ function renderHomeAR() {
   const headingValid = (typeof S.heading === 'number') && !isNaN(S.heading);
 
   const sw = window.innerWidth, sh = window.innerHeight;
+  // Vertikales FOV dynamisch aus HFOV + Seitenverhältnis (siehe renderAR).
+  const vfov = 2 * Math.atan(Math.tan(CAM_HFOV * Math.PI / 360) * (sh / sw)) * 180 / Math.PI;
   const targets = [
     { type: 'hochsitz', dotId: 'ar-hochsitz', edgeId: 'edge-hochsitz', labelId: 'labelHochsitz' },
     { type: 'auto',     dotId: 'ar-auto',     edgeId: 'edge-auto',     labelId: 'labelAuto' },
@@ -346,7 +354,7 @@ function renderHomeAR() {
       const vDiff    = _tiltEMA - snapTilt;
 
       const xPx = ( hDiff / (CAM_HFOV / 2)) * (sw / 2);
-      const yPx = (-vDiff / (CAM_VFOV / 2)) * (sh / 2);
+      const yPx = (-vDiff / (vfov / 2)) * (sh / 2);
       screenX   = sw / 2 + xPx;
       screenY   = sh / 2 + yPx;
 
