@@ -27,7 +27,7 @@
 
 <!-- ══ SPLASH SCREEN ══════════════════════ -->
 <div id="s-splash" class="on" onclick="leaveSplash()">
-  <div class="splash-version" id="splashVersion">v23-21</div>
+  <div class="splash-version" id="splashVersion">v23-23</div>
   <div class="splash-inner">
     <div class="splash-art">
 
@@ -107,6 +107,24 @@
     <span class="nav-btn-icon">🧭</span>
     <span class="nav-btn-count" id="navBtnCount">0</span>
   </button>
+</div>
+
+<!-- ══ ZIEL-LISTE (zentrales Zielsuchmenü) ══ -->
+<div id="s-target-list">
+  <div class="sub-header">
+    <button class="btn-sub-back" onclick="goMainMenu()">← h.o.u.n.d.</button>
+    <div class="sub-title">ziele</div>
+    <div class="gps-pill">
+      <div class="gps-dot" id="gpsDList"></div>
+      <span id="gpsTList" style="font-family:var(--mono)">GPS…</span>
+    </div>
+  </div>
+  <div class="sub-body">
+    <div class="saved-locations" id="targetListBody">
+      <!-- dynamisch befüllt von renderTargetList() -->
+    </div>
+    <div class="perm-note" id="targetListEmpty" style="display:none;">Noch keine Ziele markiert.</div>
+  </div>
 </div>
 
 <!-- ══ HOME SUBMENU ══════════════════════ -->
@@ -273,10 +291,10 @@
 
   <div class="cam-bottom">
     <div class="arrived-msg" id="homeArrivedMsg">
-      <div class="arr-big">✓ ZIEL ERREICHT</div>
+      <div class="arr-big">✓ ZIEL GEFUNDEN</div>
       <div class="arr-sub">Standort in &lt; 8 Meter</div>
     </div>
-    <button id="btn-stop-home-alarm" style="display:none;width:100%;margin-top:10px;padding:18px;background:#b83030;border:2px solid #e05050;border-radius:10px;color:#fff;font-family:var(--sans);font-size:20px;font-weight:700;letter-spacing:3px;text-transform:uppercase;cursor:pointer;animation:alarmPulse 0.8s ease-in-out infinite;" onclick="stopHomeAlarm()">⬛ Gefunden – Alarm stoppen</button>
+    <button id="btn-ack-home" class="btn-ack" style="display:none;" onclick="acknowledgeHomeArrival()">OK – verstanden</button>
     <button class="btn-back" style="width:100%;margin-top:10px;" onclick="goHomeBack()">← Zurück</button>
   </div>
 </div>
@@ -462,10 +480,10 @@
 
   <div class="cam-bottom">
     <div class="arrived-msg" id="arrivedMsg">
-      <div class="arr-big">🎯 ZIEL ERREICHT</div>
+      <div class="arr-big">🎯 ZIEL GEFUNDEN</div>
       <div class="arr-sub">Anschuss in &lt; 8 Meter</div>
     </div>
-    <button id="btn-stop-alarm" onclick="stopAlarm()">⬛ Gefunden – Alarm stoppen</button>
+    <button id="btn-ack" class="btn-ack" style="display:none;" onclick="acknowledgeArrival()">OK – verstanden</button>
     <button class="btn-back" style="width:100%;margin-top:10px;" onclick="goHome()">← Neuen Anschuss markieren</button>
   </div>
 </div>

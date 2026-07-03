@@ -19,21 +19,18 @@ function toggleHomeMap() {
   _homeMapActive = !_homeMapActive;
   const mapDiv = document.getElementById('home-map');
   const camVid = document.getElementById('vid-home-nav');
-  const arHoch = document.getElementById('ar-hochsitz');
-  const arAuto = document.getElementById('ar-auto');
-  const edgeH  = document.getElementById('edge-hochsitz');
-  const edgeA  = document.getElementById('edge-auto');
   const btn    = document.getElementById('btnToggleMap');
+
+  // Alle AR-Overlays (Pins, Edge-Pfeile, Suchkreise) zentral verwalten.
+  const arEls = ['ar-hochsitz', 'ar-auto', 'ar-anschuss',
+                 'edge-hochsitz', 'edge-auto', 'edge-anschuss',
+                 'ar-circle-hochsitz', 'ar-circle-auto', 'ar-circle-anschuss'];
 
   if (_homeMapActive) {
     mapDiv.style.display = 'block';
     camVid.style.opacity = '0';
-    const arAnschuss   = document.getElementById('ar-anschuss');
-    const edgeAnschuss = document.getElementById('edge-anschuss');
-    const circHoch     = document.getElementById('ar-circle-hochsitz');
-    const circAuto     = document.getElementById('ar-circle-auto');
-    const circAnschuss = document.getElementById('ar-circle-anschuss');
-    [arHoch, arAuto, edgeH, edgeA, arAnschuss, edgeAnschuss, circHoch, circAuto, circAnschuss].forEach(el => {
+    arEls.forEach(id => {
+      const el = document.getElementById(id);
       if (el) { el.style.display = 'none'; el.style.visibility = 'hidden'; }
     });
     btn.textContent = '📷 AR';
@@ -42,13 +39,12 @@ function toggleHomeMap() {
   } else {
     mapDiv.style.display = 'none';
     camVid.style.opacity = '1';
-    const arAnschuss2   = document.getElementById('ar-anschuss');
-    const edgeAnschuss2 = document.getElementById('edge-anschuss');
-    const circHoch2     = document.getElementById('ar-circle-hochsitz');
-    const circAuto2     = document.getElementById('ar-circle-auto');
-    const circAnschuss2 = document.getElementById('ar-circle-anschuss');
-    [arHoch, arAuto, edgeH, edgeA, arAnschuss2, edgeAnschuss2, circHoch2, circAuto2, circAnschuss2].forEach(el => {
-      if (el) { el.style.display = ''; el.style.visibility = ''; }
+    // WICHTIG: NICHT auf display:'' setzen (das machte vorher ALLE Pins sichtbar
+    // → Overlay über den ganzen Screen, Bug 2). Stattdessen alles ausblenden;
+    // der Render-Loop (renderHomeAR) blendet nur das gewählte Ziel wieder ein.
+    arEls.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.style.display = 'none'; el.style.visibility = ''; }
     });
     btn.textContent = '🗺 Karte';
     btn.style.borderColor = 'rgba(255,255,255,0.2)';
@@ -130,6 +126,18 @@ function updateHomeMapMarkers() {
   ];
   allTypes.forEach(({ type, iconSrc, label }) => {
     const t = GLOBAL_TARGETS[type];
+    // Nur das aktiv gewählte Ziel auf der Karte zeigen (siehe Ziel-Liste).
+    if (_homeTarget && type !== _homeTarget) {
+      if (_homeMapMarkers[type]) {
+        _homeMap.removeLayer(_homeMapMarkers[type]);
+        delete _homeMapMarkers[type];
+      }
+      if (_homeMapAccuracyCircles[type]) {
+        _homeMap.removeLayer(_homeMapAccuracyCircles[type]);
+        delete _homeMapAccuracyCircles[type];
+      }
+      return;
+    }
     if (!t) {
       if (_homeMapMarkers[type]) {
         _homeMap.removeLayer(_homeMapMarkers[type]);
@@ -189,7 +197,8 @@ function updateHomeMapMarkers() {
   // Stimmt sie nicht mit der gelaserten Entfernung überein, war ein
   // Eingabewert (GPS/Heading/Distanz) beim Markieren falsch.
   const an = GLOBAL_TARGETS['anschuss'];
-  if (an && an.meta && an.meta.shooterLat != null && an.meta.shooterLon != null) {
+  if ((!_homeTarget || _homeTarget === 'anschuss') &&
+      an && an.meta && an.meta.shooterLat != null && an.meta.shooterLon != null) {
     const sLat = an.meta.shooterLat, sLon = an.meta.shooterLon;
 
     if (_homeShooterMarker) {

@@ -12,6 +12,30 @@
 }
 #s-home.on { display: flex; }
 
+/* ── Ziel-Liste (zentrales Zielsuchmenü) ── */
+#s-target-list {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: linear-gradient(160deg, #0f1305, #111408 60%, #0d1103);
+  flex-direction: column;
+}
+#s-target-list.on { display: flex; }
+.saved-go {
+  background: var(--olive);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  color: #fff;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 10px 16px;
+  cursor: pointer;
+}
+.saved-go:active { transform: scale(0.97); }
+
 /* ── Saved Locations Liste ─────────────── */
 .saved-locations {
   display: flex;

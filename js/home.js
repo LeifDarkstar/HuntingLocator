@@ -114,9 +114,80 @@ function goHomeBack() {
   const btn = document.getElementById('btnToggleMap');
   if (btn) { btn.textContent = '🗺 Karte'; btn.style.borderColor = 'rgba(255,255,255,0.2)'; }
 
-  document.getElementById('s-main').classList.add('on');
+  // Zurück zur Ziel-Liste (nicht ins Hauptmenü) → der Nutzer kann direkt ein
+  // anderes Ziel wählen. Wenn keine Ziele mehr existieren, ins Hauptmenü.
   S.headingReady = false;
+  _homeTarget = null;
   updateNavButton();
+  if (hasTargets()) {
+    document.getElementById('s-target-list').classList.add('on');
+    renderTargetList();
+  } else {
+    document.getElementById('s-main').classList.add('on');
+  }
+}
+
+// ── Ziel-Übersichtsliste (zentrales Zielsuchmenü) ──
+function targetDistText(t) {
+  if (!S.lat || t.lat == null) return '—';
+  const d = haversine(S.lat, S.lon, t.lat, t.lon);
+  return d < 1000 ? Math.round(d) + ' m' : (d / 1000).toFixed(2) + ' km';
+}
+
+// Nur die Distanz-Texte aktualisieren (kein Rebuild → keine verlorenen Taps).
+function updateTargetListDistances() {
+  document.querySelectorAll('#targetListBody .saved-dist[data-dist-type]').forEach(el => {
+    const t = getFirstByType(el.getAttribute('data-dist-type'));
+    if (t) el.textContent = targetDistText(t);
+  });
+}
+
+function renderTargetList() {
+  const body  = document.getElementById('targetListBody');
+  const empty = document.getElementById('targetListEmpty');
+  if (!body) return;
+
+  const defs = [
+    { type: 'anschuss', icon: 'assets/icons/anschuss.png', label: 'Anschuss' },
+    { type: 'hochsitz', icon: 'assets/icons/hochsitz.png', label: 'Hochsitz' },
+    { type: 'auto',     icon: 'assets/icons/auto.png',     label: 'Auto' },
+  ];
+
+  body.innerHTML = '';
+  let count = 0;
+  defs.forEach(({ type, icon, label }) => {
+    const t = getFirstByType(type);
+    if (!t) return;
+    count++;
+
+    const item = document.createElement('div');
+    item.className = 'saved-item';
+    item.innerHTML =
+      '<img src="' + icon + '" style="width:36px;height:auto;">' +
+      '<div class="saved-info">' +
+        '<div class="saved-name">' + label + '</div>' +
+        '<div class="saved-dist" data-dist-type="' + type + '">' + targetDistText(t) + '</div>' +
+      '</div>' +
+      '<button class="saved-go" type="button">Hinführen</button>' +
+      '<button class="saved-del" type="button">✕</button>';
+    item.querySelector('.saved-go').onclick  = () => navToTarget(type);
+    item.querySelector('.saved-del').onclick = () => deleteTargetFromList(type);
+    body.appendChild(item);
+  });
+
+  if (empty) empty.style.display = count === 0 ? 'block' : 'none';
+}
+
+function deleteTargetFromList(type) {
+  deleteTargetsByType(type);
+  // Home-Submenü-Einträge (Hochsitz/Auto) mit synchronisieren
+  if (type === 'hochsitz' || type === 'auto') {
+    const el = document.getElementById('saved' + (type === 'hochsitz' ? 'Hochsitz' : 'Auto'));
+    if (el) el.style.display = 'none';
+  }
+  updateNavButton();
+  renderTargetList();
+  toast('Ziel gelöscht.');
 }
 
 function selectHomeTarget(type) {

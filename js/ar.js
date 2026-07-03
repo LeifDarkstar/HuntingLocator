@@ -13,7 +13,7 @@
 let _tiltEMA = null;
 
 // App-Version fürs Debug-HUD. WICHTIG: zusammen mit sw.js VERSION hochzählen!
-const AR_HUD_VERSION = 'v23-22';
+const AR_HUD_VERSION = 'v23-23';
 
 // ── AR: Mark-Nav (Anschuss) ────────────────
 function renderAR() {
@@ -33,10 +33,19 @@ function renderAR() {
   document.getElementById('nDist').className   = 'nv' + (dist < 25 ? ' close' : '');
 
   // ── Arrived-Check + Sound ──
+  // "Ziel gefunden"-Text bleibt sichtbar solange man im Radius ist. Der Alarm
+  // (Ton/Vibration + OK-Button) startet einmal und schweigt nach OK-Tippen,
+  // bis man den Radius verlässt (_alarmDismissed wird dann zurückgesetzt).
   const arrived = corrDist < 8;
-  document.getElementById('arrivedMsg').classList.toggle('show', arrived);
-  if ( arrived && !S.wasArrived) playArrivalSound();
-  if (!arrived &&  S.wasArrived) stopAlarm();
+  const am = document.getElementById('arrivedMsg');
+  if (arrived) {
+    if (am) am.classList.add('show');
+    if (!_alarmDismissed && !_alarmActive) startAlarm();
+  } else {
+    if (am) am.classList.remove('show');
+    _alarmDismissed = false;
+    if (_alarmActive) stopAlarm();
+  }
   S.wasArrived = arrived;
 
   // ── Horizontaler Winkel ──
@@ -288,9 +297,20 @@ function renderHomeAR() {
   let closestDist = Infinity;
 
   targets.forEach(({ type, dotId, edgeId, labelId }) => {
-    const t    = getFirstByType(type);
     const dot  = document.getElementById(dotId);
     const edge = document.getElementById(edgeId);
+    const circ = document.getElementById('ar-circle-' + type);
+
+    // Nur das aktiv gewählte Ziel rendern. Alle anderen Pins/Pfeile/Kreise
+    // ausblenden → kein Overlay-Chaos mehr beim AR↔Karte-Wechsel (Bug 2).
+    if (_homeTarget && type !== _homeTarget) {
+      if (dot)  dot.style.display  = 'none';
+      if (edge) edge.style.display = 'none';
+      if (circ) circ.style.display = 'none';
+      return;
+    }
+
+    const t = getFirstByType(type);
     if (!t || !dot || !edge) return;
 
     const dist    = haversine(S.lat, S.lon, t.lat, t.lon);
@@ -442,15 +462,20 @@ function renderHomeAR() {
   // egal ob du vorher ein Ziel angetippt hattest.
   const arrivedMsg = document.getElementById('homeArrivedMsg');
   const arrived    = closestDist < 8;
-  if (arrivedMsg) arrivedMsg.classList.toggle('show', arrived);
-
-  if (arrived && !_homeAlarmActive) {
-    startHomeAlarm();
-    // Wenn noch kein Ziel selektiert ist, automatisch das nächste auswählen
-    // → damit zeigt der Stats-Streifen sinnvolle Werte
-    if (!_homeTarget && closestType && typeof selectHomeTarget === 'function') {
-      selectHomeTarget(closestType);
+  if (arrived) {
+    if (arrivedMsg) arrivedMsg.classList.add('show');
+    // Alarm nur einmal anschalten und nicht, wenn der Nutzer bereits OK getippt hat.
+    if (!_homeAlarmDismissed && !_homeAlarmActive) {
+      startHomeAlarm();
+      // Wenn noch kein Ziel selektiert ist, automatisch das nächste auswählen
+      // → damit zeigt der Stats-Streifen sinnvolle Werte
+      if (!_homeTarget && closestType && typeof selectHomeTarget === 'function') {
+        selectHomeTarget(closestType);
+      }
     }
+  } else {
+    if (arrivedMsg) arrivedMsg.classList.remove('show');
+    _homeAlarmDismissed = false;   // Radius verlassen → nächste Ankunft alarmiert wieder
+    if (_homeAlarmActive) stopHomeAlarm();
   }
-  if (!arrived && _homeAlarmActive) stopHomeAlarm();
 }

@@ -126,17 +126,24 @@ function refreshGPS() {
     const t = document.getElementById('gpsT' + i);
     if (t) { t.textContent = txt; t.style.fontFamily = 'var(--mono)'; }
   }
-  ['gpsD0b', 'gpsD0c', 'gpsD4'].forEach(id => {
+  ['gpsD0b', 'gpsD0c', 'gpsD4', 'gpsDList'].forEach(id => {
     const d = document.getElementById(id);
     if (d) d.className = 'gps-dot ' + cls;
   });
-  ['gpsT0b', 'gpsT0c', 'gpsT4'].forEach(id => {
+  ['gpsT0b', 'gpsT0c', 'gpsT4', 'gpsTList'].forEach(id => {
     const t = document.getElementById(id);
     if (t) { t.textContent = txt; t.style.fontFamily = 'var(--mono)'; }
   });
 
   updateSavedDistances();
   updateHomeMapPlayer();
+
+  // Ziel-Liste live mit Distanzen versorgen, solange sie sichtbar ist
+  // (nur Text-Update, kein Rebuild → Taps gehen nicht verloren)
+  const tl = document.getElementById('s-target-list');
+  if (tl && tl.classList.contains('on') && typeof updateTargetListDistances === 'function') {
+    updateTargetListDistances();
+  }
   updateSnapStatus();   // Ampel über dem Snap-Button
 
   const ma = document.getElementById('mAcc');

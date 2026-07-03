@@ -40,9 +40,11 @@ async function goNav() {
 
   // Arrived-State zurücksetzen damit Alarm + Pin + Meldung frisch triggern
   S.wasArrived = false;
+  _alarmDismissed = false;
   stopAlarm();
   document.getElementById('arrivedMsg').classList.remove('show');
-  document.getElementById('btn-stop-alarm').style.display = 'none';
+  const ackBtn = document.getElementById('btn-ack');
+  if (ackBtn) ackBtn.style.display = 'none';
   document.getElementById('ar-dot').style.display = 'none';
 
   document.getElementById('s-nav').classList.add('on');
@@ -72,7 +74,7 @@ function goHome() {
 
 function goMainMenu() {
   // Nur classList – niemals mit style.display auf Screen-Elementen mischen
-  ['s-home', 's-mark', 's-nav', 's-mark-menu', 's-home-nav'].forEach(id => {
+  ['s-home', 's-mark', 's-nav', 's-mark-menu', 's-home-nav', 's-target-list'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.remove('on');
   });
@@ -142,15 +144,26 @@ function updateNavButton() {
   }
 }
 
-async function goGlobalNav() {
+// Zentraler Nav-Button → zeigt jetzt die Ziel-Übersichtsliste (statt direkt
+// alle Pins gleichzeitig im AR). Von dort wählt der Nutzer EIN Ziel zum Führen.
+function goGlobalNav() {
   if (!hasTargets()) {
     toast('Noch keine Ziele gespeichert!', true);
     return;
   }
+  document.getElementById('s-main').classList.remove('on');
+  document.getElementById('s-target-list').classList.add('on');
+  if (typeof renderTargetList === 'function') renderTargetList();
+}
+
+// Führt zu GENAU EINEM Ziel (type = 'anschuss' | 'hochsitz' | 'auto').
+// Der Home-Nav-AR-Loop rendert dann nur dieses eine Ziel → kein Overlay-Chaos.
+async function navToTarget(type) {
+  if (!getFirstByType(type)) { toast('Ziel nicht gefunden.', true); return; }
   await requestOri();
 
   // Alle anderen Screens sauber ausblenden + Kamera/Loops stoppen
-  ['s-main', 's-home', 's-mark', 's-nav', 's-mark-menu'].forEach(id => {
+  ['s-main', 's-home', 's-mark', 's-nav', 's-mark-menu', 's-target-list'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.remove('on');
   });
@@ -163,12 +176,10 @@ async function goGlobalNav() {
   nav.classList.add('on');
   await attachCam('vid-home-nav');
 
-  _homeTarget = null;
-  document.getElementById('homeNavStats').style.display = 'none';
-
-  const n = targetCount();
-  document.getElementById('homeNavTitle').textContent =
-    n + ' Ziel' + (n > 1 ? 'e' : '');
+  // Gewähltes Ziel setzen + frischer Alarm-Zustand
+  _homeTarget = type;
+  _homeAlarmDismissed = false;
+  if (typeof selectHomeTarget === 'function') selectHomeTarget(type);
 
   // Karten-Modus zurück auf AR
   _homeMapActive = false;

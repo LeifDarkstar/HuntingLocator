@@ -10,6 +10,13 @@ let _alarmActive = false;
 let _homeAlarmActive = false;
 let _homeAlarmInterval = null;
 
+// "Quittiert"-Flags: wenn der Nutzer am Ziel auf OK tippt, schweigt der Alarm,
+// solange er im 8-m-Radius bleibt. Erst wenn er das Ziel verlässt und neu
+// ankommt, darf der Alarm wieder auslösen. Behebt das "Alarm klebt"-Problem,
+// bei dem der Render-Loop den Alarm sofort wieder anschaltete.
+let _alarmDismissed = false;
+let _homeAlarmDismissed = false;
+
 function getAudioCtx() {
   if (!_audioCtx) {
     _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -59,7 +66,8 @@ function triggerArrivalVibration() {
 function startAlarm() {
   if (_alarmActive) return;
   _alarmActive = true;
-  document.getElementById('btn-stop-alarm').style.display = 'block';
+  const btn = document.getElementById('btn-ack');
+  if (btn) btn.style.display = 'block';
   triggerArrivalVibration();
   playBeepSequence();
   _alarmInterval = setInterval(playBeepSequence, 3000);
@@ -68,17 +76,25 @@ function stopAlarm() {
   _alarmActive = false;
   clearInterval(_alarmInterval);
   _alarmInterval = null;
-  const btn = document.getElementById('btn-stop-alarm');
+  const btn = document.getElementById('btn-ack');
   if (btn) btn.style.display = 'none';
   try { if (navigator.vibrate) navigator.vibrate(0); } catch (e) {}
 }
 function playArrivalSound() { startAlarm(); }
 
+// Nutzer tippt am Ziel auf "OK" → Ton + Button weg, "Ziel gefunden"-Text bleibt.
+// Schweigt bis er den Radius verlässt (Flag wird im Render-Loop zurückgesetzt).
+function acknowledgeArrival() {
+  _alarmDismissed = true;
+  stopAlarm();
+}
+
 // ── HOME-NAV ALARM ──────────────────────
 function startHomeAlarm() {
   if (_homeAlarmActive) return;
   _homeAlarmActive = true;
-  document.getElementById('btn-stop-home-alarm').style.display = 'block';
+  const btn = document.getElementById('btn-ack-home');
+  if (btn) btn.style.display = 'block';
   triggerArrivalVibration();
   playBeepSequence();
   _homeAlarmInterval = setInterval(playBeepSequence, 3000);
@@ -87,7 +103,11 @@ function stopHomeAlarm() {
   _homeAlarmActive = false;
   clearInterval(_homeAlarmInterval);
   _homeAlarmInterval = null;
-  const btn = document.getElementById('btn-stop-home-alarm');
+  const btn = document.getElementById('btn-ack-home');
   if (btn) btn.style.display = 'none';
   try { if (navigator.vibrate) navigator.vibrate(0); } catch (e) {}
+}
+function acknowledgeHomeArrival() {
+  _homeAlarmDismissed = true;
+  stopHomeAlarm();
 }
