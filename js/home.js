@@ -194,5 +194,7 @@ function selectHomeTarget(type) {
   _homeTarget = type;
   const labels = { hochsitz: 'Hochsitz', auto: 'Auto', anschuss: 'Anschuss' };
   document.getElementById('homeNavTitle').textContent = labels[type] || type;
-  document.getElementById('homeNavStats').style.display = 'flex';
+  // Info-Kärtchen (Entfernung/Kurs/Höhe) in der Bildmitte bewusst AUS —
+  // die Entfernung steht bereits am Marker, mehr braucht die Navigation nicht.
+  document.getElementById('homeNavStats').style.display = 'none';
 }
