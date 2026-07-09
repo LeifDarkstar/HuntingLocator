@@ -22,12 +22,13 @@
 <link rel="stylesheet" href="css/menu.css">
 <link rel="stylesheet" href="css/home.css">
 <link rel="stylesheet" href="css/cam.css">
+<link rel="stylesheet" href="css/track.css">
 </head>
 <body>
 
 <!-- ══ SPLASH SCREEN ══════════════════════ -->
 <div id="s-splash" class="on" onclick="leaveSplash()">
-  <div class="splash-version" id="splashVersion">v23-24</div>
+  <div class="splash-version" id="splashVersion">v23-25</div>
   <div class="splash-inner">
     <div class="splash-art">
 
@@ -88,11 +89,10 @@
       <div class="r-desc">Markiere vor dem Schuss dein Ziel und lass dich zum Anschuss führen.</div>
       <div class="r-badge" id="markBadgeMain"></div>
     </button>
-    <button class="rubrik-card r-track" onclick="goRubrik('track')">
+    <button class="rubrik-card r-track active-rubrik" onclick="goRubrik('track')">
       <img class="card-pin" src="assets/icons/track.png">
       <div class="r-name">track</div>
       <div class="r-desc">Folge Schweisspuren. AR zeigt dir die Fluchtrichtung.</div>
-      <div class="r-soon">coming soon</div>
     </button>
     <button class="rubrik-card r-wolfpack" onclick="goRubrik('wolfpack')">
       <img class="card-pin" src="assets/icons/wolfpack.png">
@@ -124,6 +124,36 @@
       <!-- dynamisch befüllt von renderTargetList() -->
     </div>
     <div class="perm-note" id="targetListEmpty" style="display:none;">Noch keine Ziele markiert.</div>
+  </div>
+</div>
+
+<!-- ══ TRACK (Blutspur sammeln) ═══════════ -->
+<div id="s-track">
+  <div class="sub-header">
+    <button class="btn-sub-back" onclick="goMainMenu()">← h.o.u.n.d.</button>
+    <div class="sub-title">track</div>
+    <div class="gps-pill">
+      <div class="gps-dot" id="gpsDTrack"></div>
+      <span id="gpsTTrack" style="font-family:var(--mono)">GPS…</span>
+    </div>
+  </div>
+
+  <div id="track-map"></div>
+
+  <div class="track-controls">
+    <div class="track-stats-row">
+      <div class="track-stat"><span id="trackCount">0</span> Punkte</div>
+      <div class="track-archive" id="trackArchive">0 Suchen gespeichert</div>
+    </div>
+    <button class="track-tap" id="btnTrackTap" onclick="addBloodPoint()">
+      <span class="track-tap-plus">＋</span>
+      <span class="track-tap-label">Blutpunkt setzen</span>
+    </button>
+    <div class="track-row">
+      <button class="track-mini disabled" id="btnTrackUndo"  onclick="undoBloodPoint()">↩ Undo</button>
+      <button class="track-mini"          id="btnTrackNew"   onclick="newTrack()">✚ Neue Suche</button>
+      <button class="track-mini found disabled" id="btnTrackFound" onclick="finishTrack()">✓ Tier gefunden</button>
+    </div>
   </div>
 </div>
 
@@ -508,6 +538,7 @@
 <script src="js/camera.js"></script>
 <script src="js/ar.js"></script>
 <script src="js/map.js"></script>
+<script src="js/track.js"></script>
 <script src="js/navigation.js"></script>
 <script src="js/mark.js"></script>
 <script src="js/home.js"></script>

@@ -74,7 +74,7 @@ function goHome() {
 
 function goMainMenu() {
   // Nur classList – niemals mit style.display auf Screen-Elementen mischen
-  ['s-home', 's-mark', 's-nav', 's-mark-menu', 's-home-nav', 's-target-list'].forEach(id => {
+  ['s-home', 's-mark', 's-nav', 's-mark-menu', 's-home-nav', 's-target-list', 's-track'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.remove('on');
   });
@@ -116,6 +116,8 @@ function goRubrik(name) {
     if (typeof refreshCalibrationStatus === 'function') refreshCalibrationStatus();
   } else if (name === 'mark') {
     document.getElementById('s-mark-menu').classList.add('on');
+  } else if (name === 'track') {
+    openTrack();
   } else {
     document.getElementById('s-main').classList.add('on');
     toast('Coming soon – wird in einer späteren Version verfügbar sein.');

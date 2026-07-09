@@ -13,7 +13,7 @@
 let _tiltEMA = null;
 
 // App-Version fürs Debug-HUD. WICHTIG: zusammen mit sw.js VERSION hochzählen!
-const AR_HUD_VERSION = 'v23-24';
+const AR_HUD_VERSION = 'v23-25';
 
 // ── AR: Mark-Nav (Anschuss) ────────────────
 function renderAR() {
