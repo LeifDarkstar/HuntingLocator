@@ -75,6 +75,139 @@ async function trackCountArchive() {
   }
 }
 
+// Alle gespeicherten Suchen als Array zurückgeben (für Export).
+async function trackGetAllArchive() {
+  const db = await _trackDbOpen();
+  return await new Promise((res, rej) => {
+    const tx = db.transaction(TRACK_STORE, 'readonly');
+    const rq = tx.objectStore(TRACK_STORE).getAll();
+    rq.onsuccess = () => res(rq.result || []);
+    rq.onerror   = () => rej(rq.error);
+  });
+}
+
+// ══════════════════════════════════════════
+//  Sicherung — Export / Import
+//  Die gespeicherten Suchen sind die Trainingsdaten fürs spätere "Gehirn".
+//  Browser-Speicher kann iOS nach ~7 Tagen leeren → hier die Rettungsleine.
+// ══════════════════════════════════════════
+
+// Eindeutige "Unterschrift" einer Suche → damit ein erneuter Import keine
+// Duplikate anlegt (gleiche Suche zweimal zählt sonst doppelt fürs Gehirn).
+function _trackSignature(rec) {
+  const s = rec && rec.startedAt  != null ? rec.startedAt  : '?';
+  const f = rec && rec.finishedAt != null ? rec.finishedAt : '?';
+  const n = rec && rec.points ? rec.points.length : 0;
+  return s + '|' + f + '|' + n;
+}
+
+async function trackExport() {
+  let all;
+  try {
+    all = await trackGetAllArchive();
+  } catch (e) {
+    toast('Export fehlgeschlagen — Speicher nicht lesbar.', true);
+    return;
+  }
+  if (!all.length) { toast('Noch keine Suchen zum Sichern.', true); return; }
+
+  const payload = {
+    app:        'hound',
+    kind:       'track-archive',
+    version:    (typeof AR_HUD_VERSION === 'string') ? AR_HUD_VERSION : null,
+    exportedAt: Date.now(),
+    count:      all.length,
+    tracks:     all,
+  };
+  const json = JSON.stringify(payload, null, 2);
+
+  const now = new Date();
+  const pad = (x) => String(x).padStart(2, '0');
+  const fname = 'hound-suchen-' + now.getFullYear() + '-' +
+                pad(now.getMonth() + 1) + '-' + pad(now.getDate()) + '.json';
+
+  const blob = new Blob([json], { type: 'application/json' });
+
+  // iOS: Teilen-Menü (Datei in Dateien/iCloud sichern, mailen, …).
+  try {
+    if (navigator.canShare) {
+      const file = new File([blob], fname, { type: 'application/json' });
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: 'h.o.u.n.d. Sicherung' });
+        toast('Sicherung geteilt ✓  (' + all.length + ' Suchen)');
+        return;
+      }
+    }
+  } catch (e) {
+    // Nutzer hat abgebrochen oder Share nicht möglich → Fallback unten.
+    if (e && e.name === 'AbortError') return;
+  }
+
+  // Fallback: normaler Download.
+  try {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fname;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    toast('Sicherung heruntergeladen ✓  (' + all.length + ' Suchen)');
+  } catch (e) {
+    toast('Export fehlgeschlagen.', true);
+  }
+}
+
+function trackImport() {
+  const input = document.createElement('input');
+  input.type   = 'file';
+  input.accept = 'application/json,.json';
+  input.style.display = 'none';
+  document.body.appendChild(input);
+
+  input.addEventListener('change', async () => {
+    const file = input.files && input.files[0];
+    document.body.removeChild(input);
+    if (!file) return;
+
+    let data;
+    try {
+      const text = await file.text();
+      data = JSON.parse(text);
+    } catch (e) {
+      toast('Datei nicht lesbar (kein gültiges JSON).', true);
+      return;
+    }
+
+    const tracks = data && Array.isArray(data.tracks) ? data.tracks
+                 : (Array.isArray(data) ? data : null);
+    if (!tracks) { toast('Keine Suchen in der Datei gefunden.', true); return; }
+
+    // Vorhandene Unterschriften sammeln → nur wirklich neue Suchen einspielen.
+    let existing = [];
+    try { existing = await trackGetAllArchive(); } catch (e) {}
+    const known = new Set(existing.map(_trackSignature));
+
+    let added = 0, skipped = 0;
+    for (const rec of tracks) {
+      if (!rec || !Array.isArray(rec.points)) { skipped++; continue; }
+      const sig = _trackSignature(rec);
+      if (known.has(sig)) { skipped++; continue; }
+      const clean = Object.assign({}, rec);
+      delete clean.id;   // eigene autoIncrement-ID vergeben lassen
+      const ok = await trackSaveArchive(clean);
+      if (ok) { added++; known.add(sig); } else { skipped++; }
+    }
+
+    refreshTrackArchiveCount();
+    toast(added + ' neue Suche' + (added === 1 ? '' : 'n') + ' geladen' +
+          (skipped ? '  (' + skipped + ' übersprungen)' : '') + ' ✓');
+  });
+
+  input.click();
+}
+
 // ══════════════════════════════════════════
 //  Screen öffnen / schließen
 // ══════════════════════════════════════════

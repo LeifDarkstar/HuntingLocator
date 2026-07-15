@@ -28,7 +28,7 @@
 
 <!-- ══ SPLASH SCREEN ══════════════════════ -->
 <div id="s-splash" class="on" onclick="leaveSplash()">
-  <div class="splash-version" id="splashVersion">v23-25</div>
+  <div class="splash-version" id="splashVersion">v23-26</div>
   <div class="splash-inner">
     <div class="splash-art">
 
@@ -153,6 +153,10 @@
       <button class="track-mini disabled" id="btnTrackUndo"  onclick="undoBloodPoint()">↩ Undo</button>
       <button class="track-mini"          id="btnTrackNew"   onclick="newTrack()">✚ Neue Suche</button>
       <button class="track-mini found disabled" id="btnTrackFound" onclick="finishTrack()">✓ Tier gefunden</button>
+    </div>
+    <div class="track-row track-backup">
+      <button class="track-mini" id="btnTrackExport" onclick="trackExport()">⬇ Sicherung</button>
+      <button class="track-mini" id="btnTrackImport" onclick="trackImport()">⬆ Laden</button>
     </div>
   </div>
 </div>

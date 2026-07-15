@@ -4,7 +4,7 @@
    Beim Update: Version unten hochzählen (vX.Y).
    ══════════════════════════════════════════ */
 
-const VERSION = 'hound-v23-25';   // ⬅ bei jedem Release inkrementieren
+const VERSION = 'hound-v23-26';   // ⬅ bei jedem Release inkrementieren
 
 const APP_SHELL = [
   './',
