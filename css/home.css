@@ -110,6 +110,13 @@
   transition: width 0.18s ease, height 0.18s ease;
 }
 
+/* Im Zielbereich (du bist im Suchradius) → grün statt blau: "jetzt suchen" */
+.ar-circle.in-zone {
+  border-color: rgba(143, 174, 27, 0.85);
+  background: rgba(143, 174, 27, 0.18);
+  box-shadow: 0 0 16px rgba(143, 174, 27, 0.45);
+}
+
 .ar-home-label {
   /* Absolut UNTER dem Pin positioniert (nicht im normalen Fluss).
      Damit hat der Pin-Container die Höhe NUR des Icons – die translate(-50%,-100%)
@@ -131,6 +138,14 @@
   border-radius: 5px;
   padding: 3px 8px;
   white-space: nowrap;
+}
+
+/* Zielbereich erreicht → Label grün umrandet, Signal "hier visuell suchen" */
+.ar-home-label.in-zone {
+  color: #eaf3c8;
+  background: rgba(58, 74, 20, 0.9);
+  border: 1px solid rgba(143, 174, 27, 0.9);
+  letter-spacing: 0.5px;
 }
 
 /* ── Mark-Submenu (eigene ID, gleiches Look&Feel) ── */

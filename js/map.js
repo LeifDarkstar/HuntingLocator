@@ -163,10 +163,10 @@ function updateHomeMapMarkers() {
     //   (b) verhauene shooterAcc-Werte nicht zu absurd großen Kreisen führen.
     // Force-recreate bei jedem Update (statt setLatLng/setRadius) — eliminiert
     // alle stale-state-Probleme nach Service-Worker-Refresh.
-    const acc = (t.meta && t.meta.shooterAcc) ? t.meta.shooterAcc : null;
-    if (acc != null && acc > 0) {
-      const radius = Math.max(2, Math.min(25, acc));
-
+    const radius = (typeof searchRadiusFor === 'function')
+      ? searchRadiusFor(t)
+      : ((t.meta && t.meta.shooterAcc) ? Math.max(2, Math.min(25, t.meta.shooterAcc)) : null);
+    if (radius != null && radius > 0) {
       if (_homeMapAccuracyCircles[type]) {
         _homeMap.removeLayer(_homeMapAccuracyCircles[type]);
         delete _homeMapAccuracyCircles[type];
@@ -184,7 +184,7 @@ function updateHomeMapMarkers() {
       // Debug-Log: sieht man in Safari → Web-Inspector → Konsole
       console.log('[map-circle]', type,
         '@', t.lat.toFixed(5), t.lon.toFixed(5),
-        'r=', radius, 'm (acc=', acc, ')');
+        'r=', radius, 'm (snapDist=', (t.meta && t.meta.snapDist), ')');
     } else if (_homeMapAccuracyCircles[type]) {
       _homeMap.removeLayer(_homeMapAccuracyCircles[type]);
       delete _homeMapAccuracyCircles[type];

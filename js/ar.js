@@ -13,7 +13,7 @@
 let _tiltEMA = null;
 
 // App-Version fürs Debug-HUD. WICHTIG: zusammen mit sw.js VERSION hochzählen!
-const AR_HUD_VERSION = 'v23-26';
+const AR_HUD_VERSION = 'v23-27';
 
 // ── AR: Mark-Nav (Anschuss) ────────────────
 function renderAR() {
@@ -322,12 +322,28 @@ function renderHomeAR() {
       closestType = type;
     }
 
+    // Ehrlicher Such-Radius (wächst mit der Schussdistanz).
+    const searchR = searchRadiusFor(t);
+    // Zielbereich = im Suchradius (mind. 8 m, damit auch kurze/präzise Ziele
+    // eine Ankunfts-Zone haben). Ab hier: nicht mehr auf den Meter zugehen,
+    // sondern visuell suchen (Schweiß, Wildkörper).
+    const inSearchZone = dist <= Math.max(searchR, 8);
+
     // Label mit Distanz
     const lbl = document.getElementById(labelId);
     const labelNames = { hochsitz: 'Hochsitz', auto: 'Auto', anschuss: 'Anschuss' };
     if (lbl) {
-      lbl.textContent = (labelNames[type] || type) + ' ' +
-        (dist < 1000 ? Math.round(dist) + 'm' : (dist / 1000).toFixed(1) + 'km');
+      const name = labelNames[type] || type;
+      if (inSearchZone) {
+        // Zahl bleibt sichtbar (man hat ja eine Entfernung eingegeben),
+        // aber ehrlich eingekleidet: "ca." + Suchradius.
+        lbl.textContent = name + '  ca. ' + Math.round(dist) + 'm · Suchbereich ±' + searchR + 'm';
+        lbl.classList.add('in-zone');
+      } else {
+        lbl.textContent = name + ' ' +
+          (dist < 1000 ? Math.round(dist) + 'm' : (dist / 1000).toFixed(1) + 'km');
+        lbl.classList.remove('in-zone');
+      }
     }
 
     // ── Nahbereich (< 8 m) ─────────────────
@@ -417,11 +433,16 @@ function renderHomeAR() {
     // z-index: Pin (15) > Kreis (14) → Pin liegt über dem Kreis.
     const circle = document.getElementById('ar-circle-' + type);
     if (circle) {
-      const acc = (t.meta && t.meta.shooterAcc) ? t.meta.shooterAcc : null;
+      // Radius = ehrlicher Such-Radius (wächst mit Schussdistanz), nicht mehr
+      // nur die kleine GPS-Genauigkeit. So sieht man bei einem 210-m-Schuss
+      // sofort: "das Tier liegt irgendwo in diesem Bereich".
+      const acc = searchR;
       if (onScreen && acc != null && acc > 0 && dist > 0.5) {
         const HFOV_rad = CAM_HFOV * Math.PI / 180;
         const angDiameterRad = (2 * acc) / dist;            // kleine Winkel ≈ tan
-        const widthPx  = angDiameterRad * (sw / HFOV_rad);
+        // Deckel: bei sehr kurzer Distanz würde der Kreis sonst den ganzen
+        // Screen sprengen — auf 1.5× Bildbreite begrenzen.
+        const widthPx  = Math.min(sw * 1.5, angDiameterRad * (sw / HFOV_rad));
 
         // Sichtwinkel auf eine Boden-Disc: arctan(Kamerahöhe / Distanz).
         // Bei Telefon-Tilt nach unten erhöht sich der gefühlte Sichtwinkel —
@@ -442,6 +463,7 @@ function renderHomeAR() {
         circle.style.top     = screenY + 'px';
         circle.style.width   = w + 'px';
         circle.style.height  = h + 'px';
+        circle.classList.toggle('in-zone', inSearchZone);  // im Zielbereich → grün
         // border-radius: 50% kommt aus css/home.css → bei width ≠ height: Ellipse
       } else {
         circle.style.display = 'none';

@@ -35,6 +35,27 @@ function calcBearing(a, b, c, d) {
   return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
 }
 
+// ── EHRLICHER SUCH-RADIUS ───────────────────
+// Der berechnete Zielpunkt streut umso stärker, je weiter der Schuss war:
+// GPS-Fehler am Schützenstand + Kompass-Fehler (±10°) wirken sich bei 200 m
+// viel heftiger aus als bei 40 m. Statt eine falsch-genaue Meter-Zahl vorzugaukeln,
+// leiten wir aus der Schussdistanz (meta.snapDist = Laser) einen realistischen
+// Suchradius ab: ~12 % der Schussdistanz, gedeckelt auf [6, 30] m.
+//   40 m Schuss  → ~6 m
+//   100 m Schuss → ~12 m
+//   210 m Schuss → ~25 m   (Leifs Gams-Fall)
+// Für direkt gespeicherte Ziele (Hochsitz/Auto, ohne Laser) bleibt es der
+// kleine GPS-Radius aus shooterAcc.
+function searchRadiusFor(t) {
+  const shot = (t && t.meta && t.meta.snapDist != null) ? t.meta.snapDist : null;
+  if (shot != null && shot > 0) {
+    return Math.round(Math.max(6, Math.min(30, 0.12 * shot)));
+  }
+  const acc = (t && t.meta && t.meta.shooterAcc) ? t.meta.shooterAcc : null;
+  if (acc != null && acc > 0) return Math.round(Math.max(2, Math.min(25, acc)));
+  return 6;
+}
+
 // ── PERSISTENTER SPEICHER (localStorage) ────
 // Speichert kleine Werte (z.B. Kompass-Offset) lokal im Browser.
 // Überlebt App-Schließen, App-Updates, iPhone-Neustart.
