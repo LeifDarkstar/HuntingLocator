@@ -46,6 +46,16 @@
 .track-stat   { color: var(--text); }
 .track-archive{ color: rgba(200, 200, 154, 0.6); font-size: 11px; }
 
+/* Vorhersage-Zeile (Richtung + Vertrauen) — nur befüllt ab 3 Punkten */
+.track-predict {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: var(--accent);          /* Gold, passend zum Kegel auf der Karte */
+  min-height: 15px;              /* Layout bleibt ruhig, auch wenn leer */
+}
+.track-predict:empty { display: none; }
+
 /* Großer Tap-Button — blind + einhändig bedienbar */
 .track-tap {
   width: 100%;

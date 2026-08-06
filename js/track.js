@@ -21,6 +21,9 @@ let _trackMap          = null;
 let _trackPlayerMarker = null;
 let _trackDots         = [];  // L.circleMarker je Punkt
 let _trackLine         = null;
+let _trackCone         = null;  // L.polygon — Richtungskegel (Vorhersage)
+let _trackPredMarker   = null;  // L.circleMarker — vorhergesagter nächster Punkt
+let _trackPredRing     = null;  // L.circle — Unsicherheits-Kreis um die Vorhersage
 
 // ══════════════════════════════════════════
 //  Persistenz — IndexedDB ("hound-tracks")
@@ -299,6 +302,144 @@ function renderTrackMap() {
       });
       _trackPlayerMarker = L.marker([S.lat, S.lon], { icon: icon, interactive: false }).addTo(_trackMap);
     }
+  }
+
+  // Vorhersage-Kegel oben drauf (ab 3 Punkten).
+  renderTrackPrediction();
+}
+
+// ══════════════════════════════════════════
+//  Vorhersage — Richtungskegel + nächster Punkt
+//
+//  Idee: Aus den bisherigen Blutpunkten die wahrscheinliche Weiter-Richtung
+//  schätzen. Neuere Abschnitte zählen stärker (das Tier kann die Richtung
+//  wechseln). Wie EINDEUTIG die Spur ist (alle Abschnitte gleiche Richtung
+//  vs. Zickzack) bestimmt, wie SCHMAL der Kegel wird — schmal = sicher.
+//  Bewusst KEINE Magie: nur ehrliche Statistik über die gesetzten Punkte.
+// ══════════════════════════════════════════
+
+// Zielpunkt aus Start + Richtung(°) + Distanz(m) — gleiche Näherung wie mark.js.
+function _destPoint(lat, lon, bearingDeg, distM) {
+  const R  = 6371000;
+  const hR = bearingDeg * Math.PI / 180;
+  const dLat = (distM * Math.cos(hR)) / R;
+  const dLon = (distM * Math.sin(hR)) / (R * Math.cos(lat * Math.PI / 180));
+  return { lat: lat + dLat * 180 / Math.PI, lon: lon + dLon * 180 / Math.PI };
+}
+
+// Liefert { bearing, halfAngleDeg, stepM, next:{lat,lon}, ringM, resultant, conf }
+// oder null, wenn zu wenige Punkte für eine sinnvolle Aussage.
+function trackPredict() {
+  const p = _trackPoints;
+  if (p.length < 3) return null;   // erst ab 3 Punkten eine ehrliche Richtung
+
+  // Abschnitte (Vektoren zwischen aufeinanderfolgenden Punkten).
+  let sumX = 0, sumY = 0, sumW = 0, sumWStep = 0;
+  for (let i = 1; i < p.length; i++) {
+    const b = calcBearing(p[i - 1].lat, p[i - 1].lon, p[i].lat, p[i].lon);
+    const d = haversine(p[i - 1].lat, p[i - 1].lon, p[i].lat, p[i].lon);
+    const w = i;                    // neuere Abschnitte stärker gewichten (linear)
+    const bR = b * Math.PI / 180;
+    sumX += w * Math.cos(bR);
+    sumY += w * Math.sin(bR);
+    sumW += w;
+    sumWStep += w * d;
+  }
+  if (sumW === 0) return null;
+
+  const bearing = (Math.atan2(sumY, sumX) * 180 / Math.PI + 360) % 360;
+  const stepM   = Math.max(2, sumWStep / sumW);          // mittlerer Schrittabstand
+
+  // Resultanten-Länge R ∈ [0,1]: 1 = alle Abschnitte gleiche Richtung (eindeutig),
+  // klein = stark streuend (unsicher). Daraus die Winkel-Streuung ableiten.
+  const resultant = Math.sqrt(sumX * sumX + sumY * sumY) / sumW;
+  const circStdRad = Math.sqrt(-2 * Math.log(Math.max(0.0001, Math.min(1, resultant))));
+  let halfAngleDeg = circStdRad * 180 / Math.PI;
+  halfAngleDeg = Math.max(5, Math.min(30, halfAngleDeg));  // Öffnung gesamt 10°–60°
+
+  const next  = _destPoint(p[p.length - 1].lat, p[p.length - 1].lon, bearing, stepM);
+  const ringM = Math.max(3, stepM * Math.sin(halfAngleDeg * Math.PI / 180));
+
+  // Vertrauens-Wort aus Eindeutigkeit + Punktzahl.
+  let conf = 'unsicher';
+  if (resultant > 0.9 && p.length >= 6) conf = 'sicher';
+  else if (resultant > 0.75)            conf = 'eher sicher';
+
+  return { bearing, halfAngleDeg, stepM, next, ringM, resultant, conf };
+}
+
+function _compass8(deg) {
+  const names = ['N', 'NO', 'O', 'SO', 'S', 'SW', 'W', 'NW'];
+  return names[Math.round(((deg % 360) / 45)) % 8];
+}
+
+function renderTrackPrediction() {
+  // Alte Vorhersage-Ebenen entfernen (force-recreate).
+  [_trackCone, _trackPredMarker, _trackPredRing].forEach(l => {
+    if (l && _trackMap) _trackMap.removeLayer(l);
+  });
+  _trackCone = _trackPredMarker = _trackPredRing = null;
+
+  const pred = trackPredict();
+  const readout = document.getElementById('trackPredict');
+
+  if (!pred) {
+    if (readout) {
+      readout.textContent = _trackPoints.length > 0
+        ? 'Vorhersage ab 3 Punkten'
+        : '';
+    }
+    return;
+  }
+  if (!_trackMap) return;
+
+  const last = _trackPoints[_trackPoints.length - 1];
+
+  // Kegel-Reichweite: reicht ein Stück über den vorhergesagten Punkt hinaus.
+  const coneLen = Math.max(10, Math.min(80, pred.stepM * 2.2));
+
+  // Kegel als Polygon: Spitze am letzten Punkt, gebogene Vorderkante.
+  const verts = [[last.lat, last.lon]];
+  const STEPS = 8;
+  for (let i = 0; i <= STEPS; i++) {
+    const a = pred.bearing - pred.halfAngleDeg + (2 * pred.halfAngleDeg) * (i / STEPS);
+    const e = _destPoint(last.lat, last.lon, a, coneLen);
+    verts.push([e.lat, e.lon]);
+  }
+  _trackCone = L.polygon(verts, {
+    color:       '#c9a227',
+    weight:      1.5,
+    opacity:     0.9,
+    fillColor:   '#c9a227',
+    fillOpacity: 0.18,
+    interactive: false,
+  }).addTo(_trackMap);
+
+  // Unsicherheits-Kreis um den vorhergesagten nächsten Punkt.
+  _trackPredRing = L.circle([pred.next.lat, pred.next.lon], {
+    radius:      pred.ringM,
+    color:       '#c9a227',
+    weight:      1.5,
+    opacity:     0.9,
+    dashArray:   '4 4',
+    fillColor:   '#c9a227',
+    fillOpacity: 0.12,
+    interactive: false,
+  }).addTo(_trackMap);
+
+  // Vorhergesagter nächster Punkt (goldenes Kreuz-Zentrum).
+  _trackPredMarker = L.circleMarker([pred.next.lat, pred.next.lon], {
+    radius:      4,
+    color:       '#f0edd8',
+    weight:      2,
+    fillColor:   '#c9a227',
+    fillOpacity: 1,
+    interactive: false,
+  }).addTo(_trackMap);
+
+  if (readout) {
+    readout.textContent = 'Richtung ' + _compass8(pred.bearing) +
+      ' (' + Math.round(pred.bearing) + '°) · ' + pred.conf;
   }
 }
 
