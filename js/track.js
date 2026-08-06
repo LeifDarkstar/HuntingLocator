@@ -24,6 +24,7 @@ let _trackLine         = null;
 let _trackCone         = null;  // L.polygon — Richtungskegel (Vorhersage)
 let _trackPredMarker   = null;  // L.circleMarker — vorhergesagter nächster Punkt
 let _trackPredRing     = null;  // L.circle — Unsicherheits-Kreis um die Vorhersage
+let _trackLastPred     = null;  // zuletzt berechnete Vorhersage (für Lauf-Hinweis)
 
 // ══════════════════════════════════════════
 //  Persistenz — IndexedDB ("hound-tracks")
@@ -218,6 +219,10 @@ function openTrack() {
   document.getElementById('s-main').classList.remove('on');
   document.getElementById('s-track').classList.add('on');
 
+  // Kompass aktivieren (für Blickrichtungs-Kegel + Lauf-Hinweis).
+  // Muss in der Nutzer-Geste laufen — der Rubrik-Tap ist diese Geste.
+  if (typeof requestOri === 'function') requestOri();
+
   // Best-effort: iOS bitten, den Speicher NICHT nach Tagen Nichtnutzung zu leeren.
   if (navigator.storage && navigator.storage.persist) {
     navigator.storage.persist().catch(() => {});
@@ -288,17 +293,28 @@ function renderTrackMap() {
     _trackDots.push(m);
   });
 
-  // Spieler-Marker (blauer Punkt = aktuelle Position)
+  // Spieler-Marker (blauer Punkt = aktuelle Position) + Blickrichtungs-Kegel.
+  // Der Kegel (#trackBeam) zeigt, wohin das Handy schaut → dreht mit dem Kompass.
   if (S.lat != null) {
     if (_trackPlayerMarker) {
       _trackPlayerMarker.setLatLng([S.lat, S.lon]);
     } else {
       const icon = L.divIcon({
-        html:       '<div style="width:16px;height:16px;background:#4a90d9;' +
-                    'border:2px solid #fff;border-radius:50%;' +
-                    'box-shadow:0 0 8px rgba(74,144,217,0.8);"></div>',
+        html:
+          '<div style="position:relative;width:80px;height:80px;">' +
+            '<svg id="trackBeam" width="80" height="80" viewBox="-40 -40 80 80" ' +
+                 'style="position:absolute;left:0;top:0;transform:rotate(0deg);' +
+                 'transition:transform 0.12s linear;">' +
+              '<path d="M0 0 L-13 -34 A36 36 0 0 1 13 -34 Z" ' +
+                    'fill="rgba(74,144,217,0.30)" stroke="rgba(74,144,217,0.55)" stroke-width="0.5"/>' +
+            '</svg>' +
+            '<div style="position:absolute;left:50%;top:50%;width:16px;height:16px;' +
+                 'margin:-8px 0 0 -8px;background:#4a90d9;border:2px solid #fff;' +
+                 'border-radius:50%;box-shadow:0 0 8px rgba(74,144,217,0.8);"></div>' +
+          '</div>',
         className:  '',
-        iconAnchor: [8, 8],
+        iconSize:   [80, 80],
+        iconAnchor: [40, 40],
       });
       _trackPlayerMarker = L.marker([S.lat, S.lon], { icon: icon, interactive: false }).addTo(_trackMap);
     }
@@ -381,6 +397,7 @@ function renderTrackPrediction() {
   _trackCone = _trackPredMarker = _trackPredRing = null;
 
   const pred = trackPredict();
+  _trackLastPred = pred;
   const readout = document.getElementById('trackPredict');
 
   if (!pred) {
@@ -389,9 +406,10 @@ function renderTrackPrediction() {
         ? 'Vorhersage ab 3 Punkten'
         : '';
     }
+    updateTrackHeading();   // Lauf-Hinweis ausblenden
     return;
   }
-  if (!_trackMap) return;
+  if (!_trackMap) { updateTrackHeading(); return; }
 
   const last = _trackPoints[_trackPoints.length - 1];
 
@@ -440,6 +458,52 @@ function renderTrackPrediction() {
   if (readout) {
     readout.textContent = 'Richtung ' + _compass8(pred.bearing) +
       ' (' + Math.round(pred.bearing) + '°) · ' + pred.conf;
+  }
+
+  updateTrackHeading();   // Lauf-Hinweis sofort aktualisieren
+}
+
+// ══════════════════════════════════════════
+//  Orientierung — Blickrichtung + Lauf-Hinweis
+//
+//  Löst das "Karte ist nordweisend, ich weiß nicht wohin ich schaue"-Problem:
+//   • Blickrichtungs-Kegel am blauen Punkt dreht mit dem Kompass (S.heading)
+//   • Lauf-Hinweis oben zeigt relativ zur Blickrichtung, wohin es geht
+//     ("geradeaus" / "40° rechts") → funktioniert trotz Nord-Karte.
+//  Wird aus dem Kompass-Handler (sensors.js) bei jeder Heading-Änderung gerufen.
+// ══════════════════════════════════════════
+function updateTrackHeading() {
+  const scr = document.getElementById('s-track');
+  if (!scr || !scr.classList.contains('on')) return;
+
+  const h = (typeof S.heading === 'number' && !isNaN(S.heading)) ? S.heading : null;
+
+  // Blickrichtungs-Kegel drehen (Nord-Karte: 0° = nach oben).
+  const beam = document.getElementById('trackBeam');
+  if (beam && h != null) beam.style.transform = 'rotate(' + h + 'deg)';
+
+  // Lauf-Hinweis nur, wenn es eine Vorhersage + Kompass + GPS gibt.
+  const guide = document.getElementById('trackGuide');
+  const arrow = document.getElementById('trackGuideArrow');
+  const txt   = document.getElementById('trackGuideText');
+  if (!guide) return;
+
+  if (_trackLastPred && h != null && S.lat != null) {
+    // Peilung von der aktuellen Position zum vorhergesagten nächsten Punkt.
+    const bng = calcBearing(S.lat, S.lon, _trackLastPred.next.lat, _trackLastPred.next.lon);
+    let rel = bng - h;                        // relativ zur Blickrichtung
+    while (rel > 180)  rel -= 360;
+    while (rel < -180) rel += 360;
+
+    if (arrow) arrow.style.transform = 'rotate(' + rel + 'deg)';
+    if (txt) {
+      const a = Math.round(Math.abs(rel));
+      txt.textContent = (a <= 20) ? 'geradeaus'
+                                  : a + '° ' + (rel > 0 ? 'rechts' : 'links');
+    }
+    guide.classList.add('on');
+  } else {
+    guide.classList.remove('on');
   }
 }
 

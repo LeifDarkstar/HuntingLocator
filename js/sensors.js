@@ -255,6 +255,7 @@ function listenOri() {
     if (mh) mh.textContent = S.heading + '°';
 
     if (getActiveAnschuss()) renderAR();
+    if (typeof updateTrackHeading === 'function') updateTrackHeading();
   };
 
   window.addEventListener('deviceorientationabsolute', window._oriHandler, true);
