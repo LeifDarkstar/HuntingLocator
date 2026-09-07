@@ -13,7 +13,7 @@
 let _tiltEMA = null;
 
 // App-Version fürs Debug-HUD. WICHTIG: zusammen mit sw.js VERSION hochzählen!
-const AR_HUD_VERSION = 'v23-29';
+const AR_HUD_VERSION = 'v23-30';
 
 // ── AR: Mark-Nav (Anschuss) ────────────────
 function renderAR() {
@@ -25,12 +25,13 @@ function renderAR() {
   const altDiff = tgt.alt - (S.alt != null ? S.alt : tgt.alt);
 
   // ── Stats-Anzeige ──
-  const corrDist = dist;
-  document.getElementById('nDist').textContent =
-    corrDist < 1000 ? Math.round(corrDist) + ' m' : (corrDist / 1000).toFixed(2) + ' km';
+  // Keine Meterzahl mehr (unzuverlässig bei weiten Schüssen). Stattdessen der
+  // ehrliche Zustand: "Zielbereich" im Suchradius, sonst führt nur die Richtung.
+  const inZone = dist <= Math.max(searchRadiusFor(tgt), 8);
+  document.getElementById('nDist').textContent = inZone ? 'Zielbereich' : '––';
   document.getElementById('nBear').textContent = Math.round(bearing) + '\u00b0';
   document.getElementById('nAlt').textContent  = (altDiff >= 0 ? '+' : '') + Math.round(altDiff) + ' m';
-  document.getElementById('nDist').className   = 'nv' + (dist < 25 ? ' close' : '');
+  document.getElementById('nDist').className   = 'nv' + (inZone ? ' close' : '');
 
   // ── Arrived-Check + Sound ──
   // "Ziel gefunden"-Text bleibt sichtbar solange man im Radius ist. Der Alarm
@@ -334,14 +335,15 @@ function renderHomeAR() {
     const labelNames = { hochsitz: 'Hochsitz', auto: 'Auto', anschuss: 'Anschuss' };
     if (lbl) {
       const name = labelNames[type] || type;
+      // KEINE Meterzahl mehr: bei weiten Bergschüssen ist sie unzuverlässig
+      // (Kompass ±10° = ±57 m auf 330 m, dazu Steilhang) und täuscht Präzision
+      // vor. Die Richtung (Pin + Größe) führt zum Ziel; im Suchradius sagt die
+      // App ehrlich "jetzt suchen". Entscheidung Leif nach 330-m-Bergschuss.
       if (inSearchZone) {
-        // Zahl bleibt sichtbar (man hat ja eine Entfernung eingegeben),
-        // aber ehrlich eingekleidet: "ca." + Suchradius.
-        lbl.textContent = name + '  ca. ' + Math.round(dist) + 'm · Suchbereich ±' + searchR + 'm';
+        lbl.textContent = name + ' · Zielbereich — suchen';
         lbl.classList.add('in-zone');
       } else {
-        lbl.textContent = name + ' ' +
-          (dist < 1000 ? Math.round(dist) + 'm' : (dist / 1000).toFixed(1) + 'km');
+        lbl.textContent = name;
         lbl.classList.remove('in-zone');
       }
     }
