@@ -1,5 +1,7 @@
 /* ══════════════════════════════════════════
-   splash.css — Splashscreen beim App-Start
+   splash.css — Splashscreen (neues Design, Sept 2026)
+   Video-Hintergrund + "hound / find what matters" + Pin-Karussell.
+   Werte 1:1 aus Figma (Splash-Node 1:56).
    ══════════════════════════════════════════ */
 
 #s-splash {
@@ -7,128 +9,134 @@
   position: fixed;
   inset: 0;
   z-index: 50;
-  background: #f0ede0;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 40px env(safe-area-inset-bottom, 30px);
+  overflow: hidden;
+  /* Fallback-Hintergrund, bis das Video lädt (oder wenn es fehlt) */
+  background: linear-gradient(160deg, #0f1305, #14180a 55%, #0c0f04);
   cursor: pointer;
 }
-#s-splash.on { display: flex; }
+#s-splash.on { display: block; }
 
-.splash-inner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  flex: 1;
+/* Vollbild-Video */
+.splash-video {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  gap: 0;
-  position: relative;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
 }
 
-/* pin + dashed line + dog container */
-.splash-art {
-  position: relative;
-  width: 240px;
-  height: 580px;
-  flex-shrink: 0;
+/* Dezenter dunkler Verlauf: oben (Schrift) + unten (Version/Hinweis) leicht abdunkeln */
+.splash-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg,
+      rgba(0, 0, 0, 0.55) 0%,
+      rgba(0, 0, 0, 0.20) 30%,
+      rgba(0, 0, 0, 0.00) 52%,
+      rgba(0, 0, 0, 0.00) 76%,
+      rgba(0, 0, 0, 0.45) 100%);
 }
 
-/* Pin at top */
+/* Positionsschicht über dem Video — Kinder exakt nach Figma-Koordinaten platziert */
+.splash-content {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Pin — wechselt via splash.js durch die Icons.
+   Figma: left 169/390 = 43.3%, top 110/844 = 13% */
 .splash-pin {
   position: absolute;
-  top: 0;
-  left: 62%;
-  transform: translateX(-50%);
+  left: 43.3%;
+  top: 13%;
   animation: pinFloat 2.8s ease-in-out infinite;
 }
-#pinImg {
+
+/* Text-Block — LINKSBÜNDIG, "hound" + Untertitel eng untereinander.
+   Figma: left 103/390 = 26.4%, "hound"-top 186/844 = 22% */
+.splash-text {
+  position: absolute;
+  left: 26.4%;
+  top: 22%;
+  text-align: left;
+}
+.splash-pin img {
+  width: 68px;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.45));
   transition: opacity 0.5s ease;
 }
 #pinImg.fading { opacity: 0; }
-
-/* Dashed line */
-.splash-line {
-  position: absolute;
-  top: 88px;
-  left: 62%;
-  transform: translateX(-50%);
+@keyframes pinFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-7px); }
 }
 
-/* Dog SVG */
-.splash-dog {
-  position: absolute;
-  bottom: 0;
-  left: 44%;
-  transform: translateX(-50%);
-  animation: dogBreath 3s ease-in-out infinite;
-  mix-blend-mode: multiply;
-  z-index: 1;
-}
-@keyframes dogBreath {
-  0%, 100% { transform: translateX(-50%) scale(1); }
-  50%      { transform: translateX(-50%) scale(1.02); }
-}
-
-/* Logo block */
-.splash-logo-block {
-  position: absolute;
-  top: 420px;
-  left: -90px;
-  width: 140px;
-  z-index: 2;
-}
+/* "hound" — Arial Bold Italic, ~64px (Figma 63.7px) */
 .splash-logo {
-  font-family: var(--serif);
-  font-size: 36px;
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
   font-weight: 700;
-  color: var(--olive);
-  letter-spacing: 3px;
-  line-height: 1;
-}
-.splash-tagline {
-  font-size: 12px;
-  color: var(--accent);
   font-style: italic;
-  letter-spacing: 1px;
-  margin-top: 4px;
-  white-space: nowrap;
+  font-size: clamp(48px, 16.3vw, 68px);
+  line-height: 1;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55);
 }
 
-/* Versions-Badge oben — damit man sofort sieht welche Version geladen ist */
-.splash-version {
-  position: absolute;
-  top: calc(env(safe-area-inset-top, 12px) + 12px);
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 3;
-  font-family: var(--mono);
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  color: var(--accent);
-  background: rgba(74, 94, 26, 0.10);
-  padding: 6px 16px;
-  border-radius: 999px;
+/* "find what matters" — Arial Italic, ~20px (Figma 20.3px) */
+.splash-tagline {
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-style: italic;
+  font-size: clamp(15px, 5.2vw, 21px);
+  color: #ffffff;
+  letter-spacing: 0.4px;
+  margin-top: 2px;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.55);
 }
 
-/* tap hint */
+/* Tipp-Hinweis unten */
 .splash-hint {
-  margin-top: 20px;
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 20px) + 46px);
+  transform: translateX(-50%);
+  z-index: 2;
   font-family: var(--mono);
   font-size: 11px;
   letter-spacing: 3px;
   text-transform: uppercase;
-  color: rgba(74, 94, 26, 0.4);
+  color: rgba(255, 255, 255, 0.75);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
   animation: hintPulse 2s ease-in-out infinite;
+  pointer-events: none;
 }
 @keyframes hintPulse {
-  0%, 100% { opacity: 0.4; }
+  0%, 100% { opacity: 0.5; }
   50%      { opacity: 1; }
 }
 
-/* fade out animation */
+/* Kleine Versionsanzeige ganz unten (fürs Cache-Debugging behalten) */
+.splash-version {
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 20px) + 16px);
+  transform: translateX(-50%);
+  z-index: 2;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.55);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+}
+
+/* Ausblende-Animation beim Antippen */
 @keyframes splashFade {
   0%   { opacity: 1; transform: scale(1); }
   100% { opacity: 0; transform: scale(1.04); }

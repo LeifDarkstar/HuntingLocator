@@ -28,39 +28,29 @@
 
 <!-- ══ SPLASH SCREEN ══════════════════════ -->
 <div id="s-splash" class="on" onclick="leaveSplash()">
-  <div class="splash-version" id="splashVersion">v23-30</div>
-  <div class="splash-inner">
-    <div class="splash-art">
+  <!-- Vollbild-Video im Hintergrund. Läuft stumm in Endlosschleife (iOS: muted+playsinline nötig).
+       Datei assets/splash-bg.mp4 legt Leif ab; fehlt sie, greift der dunkle Fallback-Hintergrund. -->
+  <video class="splash-video" id="splashVideo" autoplay muted loop playsinline preload="auto"
+         poster="assets/splash-poster.jpg">
+    <source src="assets/splash-bg.mp4" type="video/mp4">
+  </video>
 
-      <!-- Pin Carousel -->
-      <div class="splash-pin" id="pinCarousel">
-        <img id="pinImg" src="assets/icons/pin-generic.png" style="width:90px;height:auto;display:block;">
-      </div>
+  <!-- Dezenter dunkler Verlauf für Schrift-Lesbarkeit -->
+  <div class="splash-scrim"></div>
 
-      <!-- Dashed line -->
-      <div class="splash-line">
-        <svg width="90" height="215" viewBox="0 0 90 215" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M 68 0 C 75 50, 12 80, 10 130 C 8 170, 62 188, 56 210"
-                fill="none" stroke="#3a4a14" stroke-width="2.5" stroke-dasharray="9 7"
-                stroke-linecap="round" opacity="0.55"/>
-        </svg>
-      </div>
-
-      <!-- Logo -->
-      <div class="splash-logo-block">
-        <div class="splash-logo">h.o.u.n.d.</div>
-        <div class="splash-tagline">find what's important...</div>
-      </div>
-
-      <!-- Dog illustration -->
-      <div class="splash-dog">
-        <img src="assets/icons/splash-dog.png"
-             style="width:200px; height:auto; display:block;"
-             alt="hound dog">
-      </div>
+  <!-- Logo-Block (oberes Drittel, mittig) -->
+  <div class="splash-content">
+    <div class="splash-pin" id="pinCarousel">
+      <img id="pinImg" src="assets/icons/pin-generic.png" alt="">
+    </div>
+    <div class="splash-text">
+      <div class="splash-logo">hound</div>
+      <div class="splash-tagline">find what matters</div>
     </div>
   </div>
-  <div class="splash-hint">· tippen zum starten ·</div>
+
+  <div class="splash-hint">tippen zum starten</div>
+  <div class="splash-version" id="splashVersion">v23-31</div>
 </div>
 
 <!-- ══ MAIN MENU (4 Rubriken) ═════════════ -->

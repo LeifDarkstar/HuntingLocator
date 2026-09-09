@@ -4,7 +4,7 @@
    Beim Update: Version unten hochzählen (vX.Y).
    ══════════════════════════════════════════ */
 
-const VERSION = 'hound-v23-30';   // ⬅ bei jedem Release inkrementieren
+const VERSION = 'hound-v23-31';   // ⬅ bei jedem Release inkrementieren
 
 const APP_SHELL = [
   './',
@@ -45,6 +45,9 @@ const APP_SHELL = [
   'assets/icons/track.png',
   'assets/icons/wolfpack.png',
   'assets/icons/splash-dog.png',
+
+  // Splash-Poster (Standbild bis das Video läuft) — klein, daher in der Shell.
+  'assets/splash-poster.jpg',
 ];
 
 // ── Install: App-Shell cachen ───────────
@@ -98,6 +101,23 @@ self.addEventListener('fetch', event => {
         caches.open(VERSION + '-cdn').then(c => c.put(req, copy));
         return res;
       }))
+    );
+    return;
+  }
+
+  // Splash-Hintergrundvideo (~6,7 MB): NICHT in der App-Shell (sonst lädt jedes
+  // Update erneut 6,7 MB, und ein Fehlschlag würde die Installation sprengen).
+  // Stattdessen beim ERSTEN Ansehen einmal cachen → danach auch offline verfügbar.
+  if (url.pathname.endsWith('splash-bg.mp4')) {
+    event.respondWith(
+      caches.open(VERSION + '-media').then(cache =>
+        cache.match('splash-bg-cached').then(hit =>
+          hit || fetch(url.pathname).then(res => {
+            cache.put('splash-bg-cached', res.clone());
+            return res;
+          }).catch(() => hit)
+        )
+      )
     );
     return;
   }
