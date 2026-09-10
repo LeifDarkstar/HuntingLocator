@@ -562,8 +562,8 @@
 }
 
 /* ── CENTRAL NAV BUTTON ────────────────── */
-/* Zähler-Button im neuen Hauptmenü (Figma 3:74): goldener Kreis + Ziel-Anzahl.
-   Position: mittig, ~82,6% von oben (Figma). Leichter Glow dahinter. */
+/* Zähler-Button = Figma-Node 3:74: goldene Scheibe (r37 → 74px) + dünner
+   goldener Ring aussen (r40.5, 1px), mittig bei ~82,6% von oben. KEIN Glühen. */
 #btn-central-nav {
   position: absolute;
   top: 82.6%;
@@ -573,32 +573,36 @@
   width: 82px;
   height: 82px;
   border-radius: 50%;
-  background: #F4C247;
-  border: 3px solid rgba(255, 236, 179, 0.85);
-  box-shadow: 0 0 26px 6px rgba(244, 194, 71, 0.45),
-              0 4px 14px rgba(0, 0, 0, 0.35);
+  background: transparent;
+  border: 1px solid #F4C247;   /* äußerer Ring (SVG Ellipse 2) */
+  box-shadow: none;            /* kein Glühen, kein Pulsieren */
   cursor: pointer;
   display: none;
   align-items: center;
   justify-content: center;
   transition: transform 0.15s;
 }
+/* innere goldene Scheibe (SVG Ellipse 1) */
+#btn-central-nav::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  background: #F4C247;
+}
 #btn-central-nav.visible { display: flex; }
-#btn-central-nav.has-targets {
-  animation: navPulse 2.5s ease-in-out infinite;
-}
-@keyframes navPulse {
-  0%, 100% { box-shadow: 0 0 26px 6px rgba(244, 194, 71, 0.45),
-                          0 4px 14px rgba(0, 0, 0, 0.35); }
-  50%      { box-shadow: 0 0 32px 11px rgba(244, 194, 71, 0.65),
-                          0 4px 14px rgba(0, 0, 0, 0.35); }
-}
 #btn-central-nav:active { transform: translate(-50%, -50%) scale(0.93); }
 .nav-btn-icon {
   font-size: 26px;
   line-height: 1;
 }
 .nav-btn-count {
+  position: relative;   /* über der Scheibe */
+  z-index: 1;
   font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
   font-style: italic;
   font-size: 36px;

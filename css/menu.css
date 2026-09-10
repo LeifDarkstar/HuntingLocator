@@ -15,14 +15,16 @@
 }
 #s-main.on { display: block; }
 
-/* Vollbild-Hintergrundfoto — 20px nach oben verschoben, unten bündig aufgefüllt */
+/* Vollbild-Hintergrundfoto — pixelgenau nach Figma (Node 3:35):
+   Bild 633×950 im 390×844-Frame bei left -172 / top -88 (plus 33px innerer
+   Versatz) → als % des Frames umgerechnet, skaliert proportional mit. */
 .hm-bg {
   position: absolute;
-  left: 0;
-  top: -20px;
-  width: 100%;
-  height: calc(100% + 20px);
-  object-fit: cover;
+  left: -35.5%;      /* (-172 + 33.4) / 390 */
+  top: -10.4%;       /* -88 / 844 */
+  width: 162.4%;     /* 633 / 390 */
+  height: auto;      /* Seitenverhältnis bleibt → deckt vertikal ab */
+  max-width: none;
   z-index: 0;
 }
 
@@ -81,11 +83,10 @@
 .hm-desc {
   font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
   font-style: italic;
-  font-size: clamp(9px, 2.7vw, 10px);
+  font-size: 10px;          /* exakt wie Figma */
   line-height: 1.3;
   color: #ffffff;
   margin-top: 6px;
-  max-width: 92%;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 .hm-soon .hm-title,
