@@ -138,11 +138,11 @@ function updateNavButton() {
   const n = targetCount();
   if (n > 0) {
     btn.classList.add('visible', 'has-targets');
-    if (cnt) cnt.textContent = n + ' Ziel' + (n > 1 ? 'e' : '');
+    if (cnt) cnt.textContent = n;          // nur die Anzahl (Figma)
   } else {
     btn.classList.add('visible');
     btn.classList.remove('has-targets');
-    if (cnt) cnt.textContent = '—';
+    if (cnt) cnt.textContent = '–';        // nichts markiert → Strich
   }
 }
 

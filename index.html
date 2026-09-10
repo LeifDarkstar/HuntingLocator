@@ -45,57 +45,52 @@
     </div>
     <div class="splash-text">
       <div class="splash-logo">hound</div>
-      <div class="splash-tagline">find what matters</div>
+      <div class="splash-tagline">find what's important</div>
     </div>
   </div>
 
   <div class="splash-hint">tippen zum starten</div>
-  <div class="splash-version" id="splashVersion">v23-31</div>
+  <div class="splash-version" id="splashVersion">v23-33</div>
 </div>
 
 <!-- ══ MAIN MENU (4 Rubriken) ═════════════ -->
 <div id="s-main" class="on">
-  <div class="main-header">
-    <div class="main-logo">h.o.u.n.d.</div>
-    <div class="main-tagline">find what's important...</div>
-    <div class="gps-pill" style="margin:0;">
-      <div class="gps-dot" id="gpsD0"></div>
-      <span id="gpsT0" style="font-family:var(--mono)">GPS…</span>
-    </div>
+  <!-- Vollbild-Hintergrundfoto (Figma-Vorlage) -->
+  <img class="hm-bg" src="assets/menu-bg.jpg" alt="">
+
+  <!-- GPS-Genauigkeit oben rechts — Punkt (grün/orange) + Abweichung, ohne Rahmen -->
+  <div class="hm-gps">
+    <span class="gps-dot" id="gpsD0"></span>
+    <span id="gpsT0">GPS…</span>
   </div>
-  <div class="rubrik-grid">
-    <button class="rubrik-card r-home active-rubrik" onclick="goRubrik('home')">
-      <div class="card-pin-wrap" id="homePinWrap" style="z-index:5;">
-        <img src="assets/icons/hochsitz.png" id="homePinA" style="opacity:1;">
-        <img src="assets/icons/auto.png"     id="homePinB" class="pin-b" style="opacity:0;transition:opacity 0.6s ease;">
-      </div>
-      <div class="r-name">home</div>
-      <div class="r-desc">Markiere Deinen Standort und lass dich zurück führen.</div>
-      <div class="r-soon">coming soon</div>
+
+  <!-- 2×2 Rubriken-Karten -->
+  <div class="hm-grid">
+    <button class="hm-card" onclick="goRubrik('home')">
+      <div class="hm-title">home</div>
+      <div class="hm-desc">Mark your location and let yourself be guided back.</div>
+      <img class="hm-pin" src="assets/pins/hochsitz.png" alt="">
     </button>
-    <button class="rubrik-card r-mark active-rubrik" onclick="goRubrik('mark')">
-      <img class="card-pin" style="opacity:1;z-index:3;top:35%;" src="assets/icons/anschuss.png">
-      <div class="r-name">mark</div>
-      <div class="r-desc">Markiere vor dem Schuss dein Ziel und lass dich zum Anschuss führen.</div>
-      <div class="r-badge" id="markBadgeMain"></div>
+    <button class="hm-card" onclick="goRubrik('mark')">
+      <div class="hm-title">mark</div>
+      <div class="hm-desc">Mark your target before the shot and let yourself be guided to the point of impact.</div>
+      <img class="hm-pin" src="assets/pins/hirsch.png" alt="">
     </button>
-    <button class="rubrik-card r-track active-rubrik" onclick="goRubrik('track')">
-      <img class="card-pin" src="assets/icons/track.png">
-      <div class="r-name">track</div>
-      <div class="r-desc">Folge Schweisspuren. AR zeigt dir die Fluchtrichtung.</div>
+    <button class="hm-card" onclick="goRubrik('track')">
+      <div class="hm-title">track</div>
+      <div class="hm-desc">Follow the blood trail and find your prey.</div>
+      <img class="hm-pin" src="assets/pins/blood.png" alt="">
     </button>
-    <button class="rubrik-card r-wolfpack" onclick="goRubrik('wolfpack')">
-      <img class="card-pin" src="assets/icons/wolfpack.png">
-      <div class="r-name">wolfpack</div>
-      <div class="r-desc">Gemeinsam jagen. Ziele teilen. Strategie planen.</div>
-      <div class="r-soon">coming soon</div>
+    <button class="hm-card hm-soon" onclick="goRubrik('wolfpack')">
+      <div class="hm-title">wolfpack</div>
+      <div class="hm-desc">Hunt together, share targets, and plan your strategy.</div>
+      <img class="hm-pin" src="assets/pins/wolf.png" alt="">
     </button>
   </div>
 
-  <!-- Zentraler Navigations-Button über den 4 Karten -->
+  <!-- Zentraler Navigations-Button (goGlobalNav) mit Anzahl markierter Ziele -->
   <button id="btn-central-nav" onclick="goGlobalNav()">
-    <span class="nav-btn-icon">🧭</span>
-    <span class="nav-btn-count" id="navBtnCount">0</span>
+    <span class="nav-btn-count" id="navBtnCount">–</span>
   </button>
 </div>
 

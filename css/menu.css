@@ -2,152 +2,106 @@
    menu.css — Hauptmenü (4 Rubriken) + Submenüs
    ══════════════════════════════════════════ */
 
-/* ── MAIN MENU ─────────────────────────── */
+/* ── MAIN MENU (neues Design Sept 2026 — Figma-Node 3:30) ──
+   Vollbild-Foto + 2×2 Karten + GPS oben rechts + Zähler-Button.
+   Werte 1:1 aus Figma. Submenü-Styles (.menu-card etc.) bleiben unberührt. */
 #s-main {
   display: none;
   position: fixed;
   inset: 0;
   z-index: 10;
-  background: linear-gradient(160deg, #0f1305, #111408 60%, #0d1103);
-  flex-direction: column;
   overflow: hidden;
+  background: #0f1305;   /* Fallback hinter dem Foto */
 }
-#s-main.on { display: flex; }
+#s-main.on { display: block; }
 
-.main-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: max(env(safe-area-inset-top, 20px), 20px) 20px 16px;
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-.main-logo {
-  font-family: var(--serif);
-  font-size: 26px;
-  font-weight: 700;
-  color: var(--olive);
-  letter-spacing: 3px;
-  text-shadow: 0 0 20px rgba(74, 94, 26, 0.4);
-}
-.main-tagline {
-  font-size: 11px;
-  color: var(--accent);
-  font-style: italic;
-  letter-spacing: 1px;
-  flex: 1;
-}
-
-/* 2x2 rubrik grid */
-.rubrik-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-  flex: 1;
-  gap: 0;
-}
-.rubrik-card {
-  display: flex;
-  flex-direction: column;
-  padding: 22px 18px;
-  background: transparent;
-  border: none;
-  text-align: left;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.2s;
-  border-right: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-}
-.card-pin {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 91px;
-  height: auto;
-  animation: pinFloat 2.8s ease-in-out infinite;
-  opacity: 0.28;
-  pointer-events: none;
-}
-.card-pin-wrap {
-  position: absolute;
-  top: 35%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 91px;
-  height: 117px;
-  pointer-events: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.card-pin-wrap img {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 91px;
-  height: auto;
-  animation: pinFloat 2.8s ease-in-out infinite;
-  opacity: 0.28;
-  transition: opacity 0.6s ease;
-}
-.rubrik-card:nth-child(2n) { border-right: none; }
-.rubrik-card:nth-child(3),
-.rubrik-card:nth-child(4) { border-bottom: none; }
-.rubrik-card:active { opacity: 0.75; }
-
-/* card backgrounds */
-.r-home     { background: linear-gradient(135deg, #3a5214 0%, #2a3c0e 100%); }
-.r-mark     { background: linear-gradient(135deg, #4a5e1a 0%, #364510 100%); }
-.r-track    { background: linear-gradient(135deg, #2a3c0e 0%, #1e2c08 100%); }
-.r-wolfpack { background: linear-gradient(135deg, #6b5a0a 0%, #4a3d06 100%); }
-
-.active-rubrik { box-shadow: inset 0 0 0 2px var(--accent2); }
-
-.r-name {
-  font-family: var(--serif);
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--bright);
-  margin-bottom: 10px;
-  letter-spacing: 1px;
-}
-.r-desc {
-  font-size: 15px;
-  color: rgba(240, 237, 216, 0.65);
-  line-height: 1.55;
-  letter-spacing: 0.3px;
-  flex: 1;
-}
-.r-soon {
-  margin-top: 12px;
-  font-family: var(--mono);
-  font-size: 10px;
-  color: rgba(240, 237, 216, 0.3);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
-.r-badge {
-  margin-top: 10px;
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--accent);
-  letter-spacing: 1px;
-}
-
-/* coming soon overlay */
-.r-home::after,
-.r-track::after,
-.r-wolfpack::after {
-  content: '';
+/* Vollbild-Hintergrundfoto */
+.hm-bg {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.28);
-  pointer-events: none;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
 }
+
+/* GPS oben rechts — Arial Italic, KEIN Rahmen (nutzt .gps-dot ok/warn) */
+.hm-gps {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 10px);
+  right: 14px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-style: italic;
+  font-size: 12px;
+  color: #ffffff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+/* 2×2 Karten-Grid (Figma: Seitenrand 14/15px, Start 15% von oben, Gap 11px) */
+.hm-grid {
+  position: absolute;
+  top: 15%;
+  left: 14px;
+  right: 15px;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 11px;
+}
+.hm-card {
+  position: relative;
+  aspect-ratio: 175 / 270;
+  padding: 12px 14px;
+  border: none;
+  cursor: pointer;
+  overflow: hidden;
+  text-align: left;
+  display: flex;              /* Titel + Beschreibung oben anheften … */
+  flex-direction: column;    /* … Pin liegt (absolut) darunter */
+  background: rgba(117, 154, 28, 0.31);   /* Figma oliv-transparent */
+  -webkit-tap-highlight-color: transparent;
+}
+.hm-card:active { filter: brightness(0.9); }
+.hm-card.hm-soon { background: rgba(25, 36, 7, 0.63); }  /* wolfpack dunkler */
+
+.hm-title {
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: clamp(26px, 8.4vw, 33px);
+  line-height: 1;
+  color: #ffffff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+.hm-desc {
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-style: italic;
+  font-size: clamp(9px, 2.7vw, 10px);
+  line-height: 1.3;
+  color: #ffffff;
+  margin-top: 6px;
+  max-width: 92%;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+.hm-soon .hm-title,
+.hm-soon .hm-desc { color: rgba(255, 255, 255, 0.33); }
+
+/* Pin — mittig im unteren Kartenbereich (Figma 68×85) */
+.hm-pin {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  transform: translate(-50%, -50%);
+  width: 68px;
+  height: auto;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 7px rgba(0, 0, 0, 0.4));
+}
+.hm-soon .hm-pin { opacity: 0.40; }
 
 /* ── SUB HEADER (used by home & mark submenus) ── */
 .sub-header {

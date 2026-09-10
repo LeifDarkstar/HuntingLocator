@@ -4,7 +4,7 @@
    Beim Update: Version unten hochzählen (vX.Y).
    ══════════════════════════════════════════ */
 
-const VERSION = 'hound-v23-31';   // ⬅ bei jedem Release inkrementieren
+const VERSION = 'hound-v23-33';   // ⬅ bei jedem Release inkrementieren
 
 const APP_SHELL = [
   './',
@@ -48,6 +48,13 @@ const APP_SHELL = [
 
   // Splash-Poster (Standbild bis das Video läuft) — klein, daher in der Shell.
   'assets/splash-poster.jpg',
+
+  // Hauptmenü: Hintergrundfoto + 4 Rubriken-Pins
+  'assets/menu-bg.jpg',
+  'assets/pins/hochsitz.png',
+  'assets/pins/hirsch.png',
+  'assets/pins/blood.png',
+  'assets/pins/wolf.png',
 ];
 
 // ── Install: App-Shell cachen ───────────
