@@ -4,7 +4,7 @@
    Beim Update: Version unten hochzählen (vX.Y).
    ══════════════════════════════════════════ */
 
-const VERSION = 'hound-v23-37';   // ⬅ bei jedem Release inkrementieren
+const VERSION = 'hound-v23-38';   // ⬅ bei jedem Release inkrementieren
 
 const APP_SHELL = [
   './',
@@ -55,6 +55,7 @@ const APP_SHELL = [
   'assets/pins/hirsch.png',
   'assets/pins/blood.png',
   'assets/pins/wolf.png',
+  'assets/pins/auto.png',
 ];
 
 // ── Install: App-Shell cachen ───────────

@@ -50,7 +50,7 @@
   </div>
 
   <div class="splash-hint">tippen zum starten</div>
-  <div class="splash-version" id="splashVersion">v23-37</div>
+  <div class="splash-version" id="splashVersion">v23-38</div>
 </div>
 
 <!-- ══ MAIN MENU (4 Rubriken) ═════════════ -->
@@ -152,74 +152,93 @@
 </div>
 
 <!-- ══ HOME SUBMENU ══════════════════════ -->
-<div id="s-home">
-  <div class="sub-header">
-    <button class="btn-sub-back" onclick="goMainMenu()">← h.o.u.n.d.</button>
-    <div class="sub-title">home</div>
-    <div class="gps-pill">
-      <div class="gps-dot" id="gpsD0b"></div>
-      <span id="gpsT0b" style="font-family:var(--mono)">GPS…</span>
-    </div>
-  </div>
-  <div class="sub-body">
-    <div class="menu">
+<div id="s-home" data-st="empty">
+  <!-- Vollbild-Hintergrund (wie Hauptmenü) -->
+  <img class="hm-bg" src="assets/menu-bg.jpg" alt="">
 
-      <button class="menu-card primary" onclick="markStandort()">
-        <div class="card-bar"></div>
-        <div class="card-body">
-          <div class="card-label">Schritt 1</div>
-          <div class="card-title">Standort markieren</div>
-          <div class="card-desc">GPS Standort speichern · Hochsitz oder Auto</div>
-        </div>
-        <div class="card-icon" style="font-size:22px;">📍</div>
-      </button>
-
-      <div class="saved-locations" id="savedLocations">
-        <div class="saved-item" id="savedHochsitz" style="display:none;">
-          <img src="assets/icons/hochsitz.png" style="width:36px;height:auto;">
-          <div class="saved-info">
-            <div class="saved-name">Hochsitz</div>
-            <div class="saved-dist" id="distHochsitz">—</div>
-          </div>
-          <button class="saved-del" onclick="deleteStandort('hochsitz')">✕</button>
-        </div>
-        <div class="saved-item" id="savedAuto" style="display:none;">
-          <img src="assets/icons/auto.png" style="width:36px;height:auto;">
-          <div class="saved-info">
-            <div class="saved-name">Auto</div>
-            <div class="saved-dist" id="distAuto">—</div>
-          </div>
-          <button class="saved-del" onclick="deleteStandort('auto')">✕</button>
-        </div>
-      </div>
-
-      <!-- Kompass-Kalibrierung -->
-      <button class="menu-card cal-entry" onclick="openCalibration()">
-        <div class="card-body">
-          <div class="card-label">Einstellung</div>
-          <div class="card-title">Kompass kalibrieren</div>
-          <div class="card-desc" id="calStatus">noch nicht kalibriert</div>
-        </div>
-        <div class="card-icon" style="font-size:22px;">🧭</div>
-      </button>
-
-    </div>
-    <div class="perm-note">Beim ersten Start: Kamera, GPS &amp; Sensoren erlauben.<br>Nur über <strong>https://</strong> öffnen.</div>
-  </div>
-</div>
-
-<!-- ══ HOME TYPE PICKER (Modal) ══════════ -->
-<div id="s-type-picker" style="display:none;position:fixed;inset:0;z-index:50;background:rgba(10,14,4,0.92);flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:40px;">
-  <div style="font-family:var(--serif);font-size:22px;color:var(--bright);letter-spacing:2px;margin-bottom:8px;">Was möchtest du markieren?</div>
-  <button class="type-pick-btn" onclick="saveStandort('hochsitz')">
-    <img src="assets/icons/hochsitz.png" style="width:70px;height:auto;">
-    <span>Hochsitz</span>
+  <!-- Back-Button oben links (schwarzes Quadrat + weißer Pfeil) -->
+  <button class="home-back" onclick="goMainMenu()" aria-label="Zurück">
+    <svg viewBox="0 0 21 17" width="18" height="15" fill="none">
+      <line x1="1.2" y1="8.4" x2="19.9" y2="8.4" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/>
+      <line x1="1" y1="8.4" x2="7.1" y2="1"  stroke="#fff" stroke-width="1.7" stroke-linecap="round"/>
+      <line x1="1" y1="8.4" x2="7.1" y2="15.8" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/>
+    </svg>
   </button>
-  <button class="type-pick-btn" onclick="saveStandort('auto')">
-    <img src="assets/icons/auto.png" style="width:70px;height:auto;">
-    <span>Auto</span>
-  </button>
-  <button onclick="closeTypePicker()" style="margin-top:8px;background:transparent;border:1px solid var(--border);border-radius:6px;padding:10px 24px;color:var(--dim);font-family:var(--sans);font-size:14px;letter-spacing:2px;cursor:pointer;">Abbrechen</button>
+
+  <!-- GPS oben rechts (wie Hauptmenü) -->
+  <div class="hm-gps">
+    <span class="gps-dot" id="gpsD0b"></span>
+    <span id="gpsT0b">GPS…</span>
+  </div>
+
+  <div class="home-panel"></div>
+  <div class="home-title">home</div>
+
+  <!-- ── STATE: leer (nichts markiert) ── -->
+  <div class="home-st st-empty">
+    <button class="home-btn" style="top:25.95%;left:6.15%;width:87.69%;" onclick="openMarkChooser()">Mark your location</button>
+    <button class="home-btn" style="top:55.21%;left:6.15%;width:87.69%;" onclick="openCalibration()">Calibrate compass</button>
+  </div>
+
+  <!-- ── STATE: Auswahl (Deer stand / Car markieren) ── -->
+  <div class="home-st st-choose">
+    <div class="home-btn home-btn-head">Mark your location</div>
+    <button class="home-x" style="top:27.4%;left:83.6%;" onclick="closeMarkChooser()" aria-label="Schließen">
+      <svg viewBox="0 0 17 17" width="15" height="15" fill="none">
+        <line x1="1.8" y1="1" x2="16.2" y2="15.4" stroke="#192407" stroke-width="1.6" stroke-linecap="round"/>
+        <line x1="1" y1="15.4" x2="15.4" y2="1" stroke="#192407" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <div class="home-body" style="top:31.52%;left:6.15%;width:87.69%;height:29.5%;"></div>
+
+    <button class="home-navzone" style="top:33.6%;left:6.15%;width:87.69%;height:11%;" onclick="markLocation('hochsitz')"></button>
+    <img class="home-pin-lg" src="assets/pins/hochsitz.png" style="top:33.65%;left:7.95%;" alt="">
+    <span class="home-choose-name" style="top:35.78%;left:30.26%;">Deer stand</span>
+
+    <div class="home-divider" style="top:45.85%;left:12.31%;width:75.38%;"></div>
+
+    <button class="home-navzone" style="top:47.8%;left:6.15%;width:87.69%;height:11%;" onclick="markLocation('auto')"></button>
+    <img class="home-pin-lg" src="assets/pins/auto.png" style="top:47.87%;left:7.95%;" alt="">
+    <span class="home-choose-name" style="top:50.12%;left:30.26%;">Car</span>
+  </div>
+
+  <!-- ── STATE: gespeichert (mit Entfernung + Lösch-X) ── -->
+  <div class="home-st st-saved">
+    <button class="home-btn home-btn-head" style="top:25.95%;left:6.15%;width:87.69%;" onclick="openMarkChooser()">Mark your location</button>
+    <div class="home-body" style="top:31.52%;left:6.15%;width:87.69%;height:17.3%;"></div>
+
+    <!-- Deer stand -->
+    <div class="home-entry" id="entryHochsitz">
+      <button class="home-navzone" style="top:32%;left:6.15%;width:79%;height:7.4%;" onclick="navToTarget('hochsitz')"></button>
+      <img class="home-pin-sm" src="assets/pins/hochsitz.png" style="top:32.82%;left:8.46%;" alt="">
+      <span class="home-name" style="top:33.53%;left:22.05%;">Deer stand</span>
+      <span class="home-dist" id="distHochsitz" style="top:35.9%;left:22.05%;">— m</span>
+      <button class="home-x" style="top:34.48%;left:86.15%;" onclick="deleteStandort('hochsitz')" aria-label="Löschen">
+        <svg viewBox="0 0 17 17" width="15" height="15" fill="none">
+          <line x1="1.8" y1="1" x2="16.2" y2="15.4" stroke="#192407" stroke-width="1.6" stroke-linecap="round"/>
+          <line x1="1" y1="15.4" x2="15.4" y2="1" stroke="#192407" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="home-divider" id="homeDivider" style="top:40.05%;left:9.74%;width:80.51%;"></div>
+
+    <!-- Car -->
+    <div class="home-entry" id="entryAuto">
+      <button class="home-navzone" style="top:41.4%;left:6.15%;width:79%;height:7.4%;" onclick="navToTarget('auto')"></button>
+      <img class="home-pin-sm" src="assets/pins/auto.png" style="top:41.71%;left:9.74%;" alt="">
+      <span class="home-name" style="top:42.3%;left:23.33%;">Car</span>
+      <span class="home-dist" id="distAuto" style="top:44.67%;left:23.33%;">— m</span>
+      <button class="home-x" style="top:43.25%;left:86.15%;" onclick="deleteStandort('auto')" aria-label="Löschen">
+        <svg viewBox="0 0 17 17" width="15" height="15" fill="none">
+          <line x1="1.8" y1="1" x2="16.2" y2="15.4" stroke="#192407" stroke-width="1.6" stroke-linecap="round"/>
+          <line x1="1" y1="15.4" x2="15.4" y2="1" stroke="#192407" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <button class="home-btn" style="top:55.69%;left:6.15%;width:87.69%;" onclick="openCalibration()">Calibrate compass</button>
+  </div>
 </div>
 
 <!-- ══ MARK SUBMENU ═══════════════════════ -->

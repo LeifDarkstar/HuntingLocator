@@ -5,6 +5,52 @@
 
 let _homeTarget = null;   // aktuell ausgewähltes Ziel beim Home-Nav
 
+// Zustand des home-Screens: null = Landing (empty/saved je nach Daten),
+// 'choose' = Auswahl (Deer stand / Car) offen.
+let _homeMarkMode = null;
+
+// home-Screen in den richtigen Zustand versetzen + gespeicherte Zeilen füllen.
+function renderHome() {
+  const scr = document.getElementById('s-home');
+  if (!scr) return;
+  const hasHoch = !!getFirstByType('hochsitz');
+  const hasAuto = !!getFirstByType('auto');
+
+  let st;
+  if (_homeMarkMode === 'choose') st = 'choose';
+  else if (hasHoch || hasAuto)    st = 'saved';
+  else                            st = 'empty';
+  scr.setAttribute('data-st', st);
+
+  const eH = document.getElementById('entryHochsitz');
+  const eA = document.getElementById('entryAuto');
+  const dv = document.getElementById('homeDivider');
+  if (eH) eH.style.display = hasHoch ? 'block' : 'none';
+  if (eA) eA.style.display = hasAuto ? 'block' : 'none';
+  if (dv) dv.style.display = (hasHoch && hasAuto) ? 'block' : 'none';
+
+  updateSavedDistances();
+}
+
+function openMarkChooser() {
+  if (!S.lat || !S.lon) { toast('Warte auf GPS…', true); return; }
+  _homeMarkMode = 'choose';
+  renderHome();
+}
+
+function closeMarkChooser() {
+  _homeMarkMode = null;
+  renderHome();
+}
+
+// Aus der Auswahl heraus den aktuellen Standort speichern → zurück zur Liste.
+function markLocation(type) {
+  if (!S.lat || !S.lon) { toast('Warte auf GPS…', true); return; }
+  saveStandort(type);
+  _homeMarkMode = null;
+  renderHome();
+}
+
 function markStandort() {
   if (!S.lat || !S.lon) { toast('Warte auf GPS…', true); return; }
   const picker = document.getElementById('s-type-picker');
@@ -27,13 +73,6 @@ function saveStandort(type) {
     },
   });
 
-  closeTypePicker();
-  document.getElementById('saved' + (type === 'hochsitz' ? 'Hochsitz' : 'Auto')).style.display = 'flex';
-
-  const navBtn = document.getElementById('cardHomeNav');
-  if (navBtn) navBtn.style.opacity = '1';
-
-  updateSavedDistances();
   updateHomeMapPlayer();
   updateNavButton();
   toast('\u2713 ' + label + ' gespeichert!');
@@ -41,11 +80,8 @@ function saveStandort(type) {
 
 function deleteStandort(type) {
   deleteTargetsByType(type);
-  document.getElementById('saved' + (type === 'hochsitz' ? 'Hochsitz' : 'Auto')).style.display = 'none';
-  if (!getFirstByType('hochsitz') && !getFirstByType('auto')) {
-    const navBtn = document.getElementById('cardHomeNav');
-    if (navBtn) navBtn.style.opacity = '0.4';
-  }
+  updateNavButton();
+  renderHome();
 }
 
 function refreshHomeMenu() {

@@ -111,9 +111,8 @@ function goRubrik(name) {
   document.getElementById('s-main').classList.remove('on');
   if (name === 'home') {
     document.getElementById('s-home').classList.add('on');
-    updateSavedDistances();
+    closeMarkChooser();       // Landing-Zustand (empty/saved) + Distanzen füllen
     updateHomeMapPlayer();
-    if (typeof refreshCalibrationStatus === 'function') refreshCalibrationStatus();
   } else if (name === 'mark') {
     document.getElementById('s-mark-menu').classList.add('on');
   } else if (name === 'track') {

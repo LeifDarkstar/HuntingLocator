@@ -7,10 +7,161 @@
   position: fixed;
   inset: 0;
   z-index: 10;
-  background: linear-gradient(160deg, #0f1305, #111408 60%, #0d1103);
-  flex-direction: column;
+  overflow: hidden;
+  background: #0f1305;
 }
-#s-home.on { display: flex; }
+#s-home.on { display: block; }
+
+/* ══════════════════════════════════════════
+   home-Screen NEU (Figma 19:2 / 19:48 / 19:145)
+   3 Zustände via [data-st] empty / choose / saved
+   ══════════════════════════════════════════ */
+.home-st { position: absolute; inset: 0; z-index: 3; pointer-events: none; display: none; }
+.home-st > * { pointer-events: auto; }
+#s-home[data-st="empty"]  .st-empty,
+#s-home[data-st="choose"] .st-choose,
+#s-home[data-st="saved"]  .st-saved { display: block; }
+
+/* Back-Button oben links (schwarzes Quadrat + weißer Pfeil) */
+.home-back {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 10px);
+  left: 24px;
+  z-index: 6;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 3px;
+  background: #000;
+  border: 1px solid #040404;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* großes oliv-transparentes Panel */
+.home-panel {
+  position: absolute;
+  left: 3.59%;
+  top: 15.05%;
+  width: 92.56%;
+  height: 65.05%;
+  z-index: 1;
+  background: rgba(117, 154, 28, 0.31);
+}
+/* Titel "home" */
+.home-title {
+  position: absolute;
+  left: 7.95%;
+  top: 16.23%;
+  z-index: 3;
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 32.878px;
+  line-height: 1;
+  color: #fff;
+}
+
+/* dunkler Button / Header */
+.home-btn {
+  position: absolute;
+  height: 47px;
+  padding: 0 7px;
+  border: none;
+  border-radius: 5.262px;
+  background: rgba(25, 36, 7, 0.63);
+  color: #fff;
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-style: italic;
+  font-size: 18.316px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.home-btn:active { filter: brightness(0.85); }
+.home-btn-head {
+  top: 25.95%;
+  left: 6.15%;
+  width: 87.69%;
+  border-radius: 5.262px 5.262px 0 0;   /* nur oben abgerundet */
+}
+
+/* Body (Auswahl / gespeichert) */
+.home-body {
+  position: absolute;
+  background: rgba(25, 36, 7, 0.4);
+}
+
+/* Trennlinie */
+.home-divider {
+  position: absolute;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* X-Button (dunkles Kreuz — Abbrechen/Löschen) */
+.home-x {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+/* transparente Tap-Fläche (Navigieren / Markieren) */
+.home-navzone {
+  position: absolute;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.home-navzone:active { background: rgba(255, 255, 255, 0.06); }
+
+/* Pins */
+.home-pin-lg { position: absolute; width: 68px; height: auto; pointer-events: none; filter: drop-shadow(0 3px 7px rgba(0,0,0,0.4)); }
+.home-pin-sm { position: absolute; width: 36px; height: auto; pointer-events: none; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.4)); }
+
+/* Auswahl-Namen (groß, Screen 2) */
+.home-choose-name {
+  position: absolute;
+  pointer-events: none;
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-style: italic;
+  font-size: 34.118px;
+  color: #fff;
+}
+
+/* gespeicherte Zeile: Name + Live-Distanz (Screen 3) */
+.home-name {
+  position: absolute;
+  pointer-events: none;
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-style: italic;
+  font-size: 18.316px;
+  color: #fff;
+}
+.home-dist {
+  position: absolute;
+  pointer-events: none;
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-style: italic;
+  font-size: 10px;
+  color: #F4C247;   /* gold — live-Entfernung zum Standort */
+}
+.home-entry { pointer-events: none; }
+.home-entry > * { pointer-events: auto; }
 
 /* ── Ziel-Liste (zentrales Zielsuchmenü) ── */
 #s-target-list {
