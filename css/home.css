@@ -67,6 +67,8 @@
 /* dunkler Button / Header */
 .home-btn {
   position: absolute;
+  z-index: 3;          /* MUSS über .home-panel (z-index 1) liegen,
+                          sonst fängt das Panel die Taps ab */
   height: 47px;
   padding: 0 7px;
   border: none;

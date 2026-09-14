@@ -22,6 +22,7 @@ function leaveSplash() {
 async function goMark() {
   await requestOri();
   document.getElementById('s-home').classList.remove('on');
+  document.getElementById('s-mark-menu').classList.remove('on');
   document.getElementById('s-nav').classList.remove('on');
   detachCam('vid-nav');
   S.pinchZoom = 1;
