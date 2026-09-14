@@ -124,9 +124,11 @@ function goRubrik(name) {
 }
 
 function showMarkStep(n) {
-  document.getElementById('mark-step1').style.display = n === 1 ? 'flex' : 'none';
-  document.getElementById('mark-step2').style.display = n === 2 ? 'flex' : 'none';
-  document.getElementById('markTitle').textContent = n === 1 ? 'Ziel einrahmen' : 'Entfernung eingeben';
+  const s1 = document.getElementById('mark-step1');
+  const s2 = document.getElementById('mark-step2');
+  if (s1) s1.style.display = n === 1 ? 'block' : 'none';
+  if (s2) s2.style.display = n === 2 ? 'block' : 'none';
+  // Titel bleibt im neuen Design immer "mark" (kein Umschalten mehr).
 }
 
 // ── Zentraler Navigations-Button ──────────

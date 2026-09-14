@@ -68,9 +68,15 @@ function snapAim() {
     acc:            snapAcc,
   };
 
-  document.getElementById('snapHead').textContent = S.heading + '\u00b0';
-  document.getElementById('snapTilt').textContent = (S.tilt > 0 ? '+' : '') + S.tilt + '\u00b0';
-  document.getElementById('distInp').value = '';
+  // Eingefrorene Snap-Werte in Schritt 2 anzeigen (Tilt / Direction / GPS)
+  const elT = document.getElementById('snapTilt');
+  const elD = document.getElementById('snapHead');
+  const elG = document.getElementById('snapAcc');
+  if (elT) elT.textContent = (S.snap.tilt > 0 ? '+' : '') + S.snap.tilt;
+  if (elD) elD.textContent = Math.round(S.snap.heading) + '\u00b0';
+  if (elG) elG.textContent = (S.snap.acc != null ? Math.round(S.snap.acc) : '\u2014') + ' m';
+  const di = document.getElementById('distInp');
+  if (di) di.value = '';
 
   // Segment-Buttons auf zuletzt benutzten Wert setzen
   setShotPosition(_shotPosition);

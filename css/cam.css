@@ -753,3 +753,204 @@
 }
 .cal-cta:active  { filter: brightness(0.92); }
 .cal-cta:disabled { opacity: 0.5; cursor: default; }
+
+/* ══════════════════════════════════════════
+   MARK — neues Design
+   (Figma 35:165 / 35:186 / 36:236 / 36:306)
+   ══════════════════════════════════════════ */
+
+/* mark-Landing (gleiche Geometrie wie home-Landing) */
+#s-mark-menu {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  overflow: hidden;
+  background: #0f1305;
+}
+#s-mark-menu.on { display: block; }
+
+/* Kamera-Screen */
+#s-mark {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  overflow: hidden;
+  background: #0f1305;
+}
+#s-mark.on { display: block; }
+
+.mk-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+/* Titel "mark" */
+.mk-title {
+  position: absolute;
+  left: 7.95%;
+  top: 16.23%;
+  z-index: 6;
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 32.878px;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+}
+
+/* Schritt-Ebenen */
+#mark-step1, #mark-step2 {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+}
+#mark-step2 { display: none; }
+
+/* Werte-Panel (Tilt / Direction / GPS) */
+.mk-panel {
+  position: absolute;
+  left: 6.15%;
+  top: 75.12%;
+  width: 87.69%;
+  height: 105px;
+  z-index: 4;
+  background: rgba(25, 36, 7, 0.6);
+}
+.mk-lab {
+  position: absolute;
+  top: 7px;
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 10px;
+  line-height: 1.15;
+  color: #F4C247;
+  white-space: nowrap;
+}
+/* Label frei positionierbar (Schritt 2: Positon / Distance) */
+.mk-lab-abs { position: absolute; top: auto; z-index: 4; }
+.mk-val {
+  position: absolute;
+  top: 22px;
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-style: italic;
+  font-size: 34.118px;
+  line-height: 1.1;
+  color: #fff;
+  white-space: nowrap;
+}
+.mk-div {
+  position: absolute;
+  top: 9px;
+  width: 1px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.35);
+}
+/* Qualitäts-Punkt (rot/gelb/grün) + Hinweistext */
+.mk-dot {
+  position: absolute;
+  left: 4.09%;
+  top: 83px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #d9534f;
+}
+.mk-panel.ready .mk-dot { background: #4dbb5f; }
+.mk-panel.wait  .mk-dot { background: #e0b13c; }
+.mk-panel.bad   .mk-dot { background: #d9534f; }
+.mk-hint {
+  position: absolute;
+  left: 6.73%;
+  top: 78px;
+  right: 8px;
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-style: italic;
+  font-size: 12px;
+  line-height: 1.15;
+  color: #fff;
+}
+
+/* ── Schritt 2: großes Panel + Position + Distanz ── */
+.mk2-panel {
+  position: absolute;
+  left: 3.59%;
+  top: 15.05%;
+  width: 92.56%;
+  height: 78.08%;
+  z-index: 1;
+  background: rgba(117, 154, 28, 0.31);
+}
+#mark-step2 .mk-panel,
+#mark-step2 .cal-cta { z-index: 4; }
+
+/* Positions-Buttons (Stalking / Blind / High seat) */
+.mk-pos {
+  position: absolute;
+  top: 25.95%;
+  width: 26.92%;
+  height: 47px;
+  z-index: 4;
+  padding: 0 7px;
+  border: none;
+  border-radius: 5.262px;
+  background: rgba(25, 36, 7, 0.63);
+  color: #fff;
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-style: italic;
+  font-size: 18.316px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.mk-pos.active { background: #F4C247; }   /* ausgewählt = orange/gold */
+.mk-pos:active { filter: brightness(0.9); }
+
+/* Entfernungs-Eingabe im Figma-Layout */
+.mk-dist-row {
+  position: absolute;
+  left: 8.72%;
+  top: 42.77%;
+  z-index: 4;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.mk-dist {
+  width: 132px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-style: italic;
+  font-size: 71.827px;
+  line-height: 1;
+  outline: none;
+  -moz-appearance: textfield;
+}
+.mk-dist::-webkit-outer-spin-button,
+.mk-dist::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.mk-dist::placeholder { color: rgba(255, 255, 255, 0.45); }
+.mk-unit {
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-style: italic;
+  font-size: 71.827px;
+  line-height: 1;
+  color: #fff;
+}
+
+/* Gesperrter Aktions-Button (Snap-Ampel setzt .disabled) */
+.cal-cta.disabled {
+  opacity: 0.5;
+  pointer-events: auto;   /* Tap erlaubt -> snapAim() erklärt per Toast warum */
+}

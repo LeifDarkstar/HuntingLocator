@@ -151,8 +151,9 @@ function refreshGPS() {
 
   const ma = document.getElementById('mAcc');
   if (ma) {
-    ma.textContent = S.acc + 'm';
-    ma.className   = 'sc-v' + (S.acc < GPS_READY_ACC ? '' : ' bad');
+    ma.textContent = S.acc + ' m';
+    // classList statt className — sonst würden Design-Klassen überschrieben
+    ma.classList.toggle('bad', !(S.acc < GPS_READY_ACC));
   }
 }
 
@@ -173,17 +174,13 @@ function updateSnapStatus() {
     const txt = pill.querySelector('.snap-status-txt');
     if (txt) {
       let msg;
-      // Reihenfolge: schwerwiegendstes Problem zuerst
-      if (gps === 'bad') {
-        msg = 'GPS zu schlecht — Standort wechseln';
-      } else if (compass === 'bad') {
-        msg = 'Kompass unkalibriert — Telefon in 8 schwenken';
-      } else if (compass === 'wait') {
-        msg = 'Kompass mäßig — kurz in 8 schwenken';
-      } else if (gps === 'wait') {
-        msg = 'GPS sammelt sich… kurz warten';
+      // Wortlaute aus dem Figma-Design (Reihenfolge: schlimmstes Problem zuerst)
+      if (gps === 'bad' || gps === 'wait') {
+        msg = 'Poor GPS – move the device in a figure-eight motion.';
+      } else if (compass === 'bad' || compass === 'wait') {
+        msg = 'Weak compass – move the device in a figure-eight motion.';
       } else {
-        msg = 'Bereit — kannst snappen';
+        msg = 'Good GPS – ready to capture target';
       }
       txt.textContent = msg;
     }
