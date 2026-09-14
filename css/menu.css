@@ -43,6 +43,12 @@
   color: #111111;   /* schwarz — Hintergrund oben rechts ist weiß */
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
 }
+/* Über dunklem Kamerabild automatisch auf weiß umschalten
+   (gesetzt von startAutoContrast() in camera.js) */
+.hm-gps.on-dark {
+  color: #ffffff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75);
+}
 
 /* 2×2 Karten-Grid (Figma: Seitenrand 14/15px, Start 15% von oben, Gap 11px) */
 .hm-grid {

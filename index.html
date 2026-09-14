@@ -50,7 +50,7 @@
   </div>
 
   <div class="splash-hint">tippen zum starten</div>
-  <div class="splash-version" id="splashVersion">v23-38</div>
+  <div class="splash-version" id="splashVersion">v23-41</div>
 </div>
 
 <!-- ══ MAIN MENU (4 Rubriken) ═════════════ -->
@@ -343,70 +343,89 @@
 </div>
 
 <!-- ══ KALIBRIERUNG: SNAP ═════════════════ -->
-<div id="s-cal-snap" class="cam-scr">
-  <div class="vid-wrap"><video id="vid-cal" autoplay playsinline muted webkit-playsinline></video></div>
+<div id="s-cal-snap">
+  <!-- Live-Kamera fullscreen, randlos -->
+  <video id="vid-cal" class="cal-video" autoplay playsinline muted webkit-playsinline></video>
 
-  <!-- Fadenkreuz (gleich wie Mark) -->
-  <div id="crosshair-cal" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:90px;height:90px;pointer-events:none;z-index:15;">
-    <svg viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="45" cy="45" r="40" stroke="rgba(201,162,39,0.35)" stroke-width="1"/>
-      <circle cx="45" cy="45" r="7"  stroke="#c9a227" stroke-width="1.5"/>
-      <line x1="45" y1="5"  x2="45" y2="34" stroke="#c9a227" stroke-width="1.5"/>
-      <line x1="45" y1="56" x2="45" y2="85" stroke="#c9a227" stroke-width="1.5"/>
-      <line x1="5"  y1="45" x2="34" y2="45" stroke="#c9a227" stroke-width="1.5"/>
-      <line x1="56" y1="45" x2="85" y2="45" stroke="#c9a227" stroke-width="1.5"/>
+  <!-- Back-Button oben links -->
+  <button class="home-back" onclick="cancelCalibration()" aria-label="Zurueck">
+    <svg viewBox="0 0 21 17" width="18" height="15" fill="none">
+      <line x1="1.2" y1="8.4" x2="19.9" y2="8.4" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/>
+      <line x1="1" y1="8.4" x2="7.1" y2="1"  stroke="#fff" stroke-width="1.7" stroke-linecap="round"/>
+      <line x1="1" y1="8.4" x2="7.1" y2="15.8" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/>
+    </svg>
+  </button>
+
+  <!-- GPS oben rechts -->
+  <div class="hm-gps">
+    <span class="gps-dot" id="gpsDCal"></span>
+    <span id="gpsTCal">GPS…</span>
+  </div>
+
+  <div class="cal-title" onclick="cancelCalibration()">home</div>
+
+  <div class="cal-head">Calibrate compass</div>
+  <button class="cal-x" onclick="cancelCalibration()" aria-label="Schliessen">
+    <svg viewBox="0 0 17 17" width="15" height="15" fill="none">
+      <line x1="1.8" y1="1" x2="16.2" y2="15.4" stroke="#192407" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="1" y1="15.4" x2="15.4" y2="1" stroke="#192407" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+  </button>
+
+  <!-- Neues Fadenkreuz (Figma), exakt bildmittig -->
+  <div class="cal-crosshair">
+    <svg viewBox="0 0 116 116" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="58" cy="58" r="56.5" stroke="#F4C247" stroke-width="3"/>
+      <line x1="58.5" y1="2" x2="58.5" y2="114" stroke="#F4C247"/>
+      <line x1="2" y1="57.5" x2="114" y2="57.5" stroke="#F4C247"/>
+      <rect x="2" y="55" width="35" height="5" fill="#F4C247"/>
+      <rect x="79" y="55" width="35" height="5" fill="#F4C247"/>
+      <rect x="56" y="113" width="35" height="5" transform="rotate(-90 56 113)" fill="#F4C247"/>
     </svg>
   </div>
 
-  <div class="cam-topbar">
-    <button class="btn-back" onclick="cancelCalibration()">← Abbrechen</button>
-    <span class="cam-title">Kompass-Kalibrierung</span>
-    <div class="cam-gps">
-      <div class="gps-dot" id="gpsD-cal"></div>
-      <span id="gpsT-cal">GPS…</span>
-    </div>
+  <div class="cal-info">
+    <div class="cal-info-step">Step 1</div>
+    <div class="cal-info-text">Choose a fixed reference point 50–200 m away<br>(tree, pole, hut, corner). Aim at it and tap.</div>
   </div>
-
-  <div class="cal-instruction" id="calStep1Hint">
-    <div class="cal-step">Schritt 1 / 2</div>
-    <div class="cal-text">
-      Such dir einen <strong>festen Bezugspunkt</strong> in 50–200 m
-      (Baum, Mast, Hütte, Eckpunkt). Visiere ihn im Fadenkreuz an und tippe SNAP.
-    </div>
-  </div>
-
-  <div id="mark-step1-cal">
-    <div style="flex:1;"></div>
-    <div class="cam-bottom" style="position:relative;padding-top:0;">
-      <button class="btn-aim" id="btnCalSnap" onclick="calSnapAim()">
-        ◎ &nbsp; Bezugspunkt erfassen
-      </button>
-    </div>
-  </div>
+  <button class="cal-cta" id="btnCalSnap" onclick="calSnapAim()">Capture reference point</button>
 </div>
 
-<!-- ══ KALIBRIERUNG: KARTE ════════════════ -->
+<!-- ══ KALIBRIERUNG: KARTE ════════════ -->
 <div id="s-cal-map">
-  <div class="cam-topbar" style="z-index:20;">
-    <button class="btn-back" onclick="goBackToCalSnap()">← Erneut</button>
-    <span class="cam-title">Schritt 2 / 2</span>
-    <div style="width:40px;"></div>
+  <!-- Karte fullscreen hinter allen Elementen -->
+  <div id="cal-map" class="cal-mapview"></div>
+
+  <button class="home-back" onclick="goBackToCalSnap()" aria-label="Zurueck">
+    <svg viewBox="0 0 21 17" width="18" height="15" fill="none">
+      <line x1="1.2" y1="8.4" x2="19.9" y2="8.4" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/>
+      <line x1="1" y1="8.4" x2="7.1" y2="1"  stroke="#fff" stroke-width="1.7" stroke-linecap="round"/>
+      <line x1="1" y1="8.4" x2="7.1" y2="15.8" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/>
+    </svg>
+  </button>
+
+  <div class="hm-gps">
+    <span class="gps-dot" id="gpsDCalM"></span>
+    <span id="gpsTCalM">GPS…</span>
   </div>
 
-  <div class="cal-map-hint">
-    Tippe auf der Karte den <strong>echten Standort</strong> deines Bezugspunkts an.
-    Du kannst mehrmals tippen, um die Position zu justieren.
-  </div>
+  <div class="cal-title" onclick="cancelCalibration()">home</div>
 
-  <div id="cal-map" style="position:absolute;left:0;right:0;top:120px;bottom:90px;"></div>
+  <div class="cal-head">Calibrate compass</div>
+  <button class="cal-x" onclick="cancelCalibration()" aria-label="Schliessen">
+    <svg viewBox="0 0 17 17" width="15" height="15" fill="none">
+      <line x1="1.8" y1="1" x2="16.2" y2="15.4" stroke="#192407" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="1" y1="15.4" x2="15.4" y2="1" stroke="#192407" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+  </button>
 
-  <div class="cam-bottom" style="position:absolute;left:0;right:0;bottom:0;padding:14px 16px;background:rgba(0,0,0,0.65);backdrop-filter:blur(8px);">
-    <div id="calOffsetPreview" style="text-align:center;color:rgba(255,255,255,0.7);font-family:var(--mono);font-size:14px;margin-bottom:10px;">Tippe einen Punkt auf der Karte</div>
-    <button class="btn-confirm" id="btnCalConfirm" disabled onclick="confirmCalibration()" style="width:100%;">
-      ✓ &nbsp; Versatz speichern
-    </button>
+  <div class="cal-info">
+    <div class="cal-info-step">Step 2</div>
+    <div class="cal-info-text">Tap the reference point’s actual location on the map.<br>Tap again to fine-tune.</div>
   </div>
+  <button class="cal-cta" id="btnCalConfirm" disabled onclick="confirmCalibration()">Save offset</button>
 </div>
+
 
 <!-- ══ MARK SCREEN ════════════════════════ -->
 <div id="s-mark" class="cam-scr">

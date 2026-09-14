@@ -58,6 +58,11 @@ async function startCalibration() {
   // Kamera an
   if (typeof attachCam === 'function') await attachCam('vid-cal');
 
+  // GPS-Schrift automatisch hell/dunkel ans Kamerabild anpassen
+  if (typeof startAutoContrast === 'function') {
+    startAutoContrast('vid-cal', '#s-cal-snap .hm-gps');
+  }
+
   _calSnap   = null;
   _calMapTap = null;
 }
@@ -67,6 +72,7 @@ function cancelCalibration() {
   const cs = document.getElementById('s-cal-snap');
   if (cs) cs.classList.remove('on');
   if (typeof detachCam === 'function') detachCam('vid-cal');
+  if (typeof stopAutoContrast === 'function') stopAutoContrast();
 
   // Map-Screen
   const cm = document.getElementById('s-cal-map');
@@ -129,6 +135,7 @@ function calSnapAim() {
   const cs = document.getElementById('s-cal-snap');
   if (cs) cs.classList.remove('on');
   if (typeof detachCam === 'function') detachCam('vid-cal');
+  if (typeof stopAutoContrast === 'function') stopAutoContrast();
 
   const cm = document.getElementById('s-cal-map');
   if (cm) cm.classList.add('on');
@@ -156,14 +163,20 @@ function goBackToCalSnap() {
 function initCalMap() {
   if (!_calSnap) return;
 
+  // "Save offset" startet deaktiviert — erst nach dem ersten Karten-Tap aktiv.
+  const cb = document.getElementById('btnCalConfirm');
+  if (cb) cb.disabled = true;
+
   // Falls schon initialisiert: aufräumen
   if (_calMap) {
     _calMap.remove();
     _calMap = null;
   }
 
+  // zoomControl aus: die +/- Buttons lägen sonst über dem Back-Button
+  // (im Figma nicht vorgesehen). Zoomen geht weiterhin per Pinch-Geste.
   _calMap = L.map('cal-map', {
-    zoomControl:        true,
+    zoomControl:        false,
     attributionControl: false,
   }).setView([_calSnap.lat, _calSnap.lon], 17);
 

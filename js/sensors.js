@@ -124,15 +124,17 @@ function refreshGPS() {
     const d = document.getElementById('gpsD' + i);
     if (d) d.className = 'gps-dot ' + cls;
     const t = document.getElementById('gpsT' + i);
-    if (t) { t.textContent = txt; t.style.fontFamily = 'var(--mono)'; }
+    // Keine Inline-Schriftart setzen — sonst überschreibt sie das Design-CSS
+    // (alte Screens erben "mono" ohnehin von .cam-gps / .gps-pill).
+    if (t) t.textContent = txt;
   }
-  ['gpsD0b', 'gpsD0c', 'gpsD4', 'gpsDList', 'gpsDTrack'].forEach(id => {
+  ['gpsD0b', 'gpsD0c', 'gpsD4', 'gpsDList', 'gpsDTrack', 'gpsDCal', 'gpsDCalM'].forEach(id => {
     const d = document.getElementById(id);
     if (d) d.className = 'gps-dot ' + cls;
   });
-  ['gpsT0b', 'gpsT0c', 'gpsT4', 'gpsTList', 'gpsTTrack'].forEach(id => {
+  ['gpsT0b', 'gpsT0c', 'gpsT4', 'gpsTList', 'gpsTTrack', 'gpsTCal', 'gpsTCalM'].forEach(id => {
     const t = document.getElementById(id);
-    if (t) { t.textContent = txt; t.style.fontFamily = 'var(--mono)'; }
+    if (t) t.textContent = txt;
   });
 
   updateSavedDistances();

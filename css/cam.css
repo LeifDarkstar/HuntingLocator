@@ -215,7 +215,7 @@
 .cal-map-hint strong { color: var(--accent2); }
 
 #btnCalConfirm[disabled] {
-  opacity: 0.4;
+  opacity: 0.5;            /* Figma: deaktivierter "Save offset"-Button */
   pointer-events: none;
 }
 
@@ -609,3 +609,147 @@
   color: #ffffff;
   line-height: 1;
 }
+
+/* ══════════════════════════════════════════
+   KALIBRIERUNG — neues Design
+   (Figma 21:50 / 34:106 / 34:135)
+   Kamera bzw. Karte FULLSCREEN, alle Elemente darüber gelegt.
+   ══════════════════════════════════════════ */
+#s-cal-snap,
+#s-cal-map {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  overflow: hidden;
+  background: #0f1305;
+}
+#s-cal-snap.on,
+#s-cal-map.on { display: block; }
+
+/* Kamera + Karte randlos über den ganzen Screen */
+.cal-video,
+.cal-mapview {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+.cal-video { object-fit: cover; }
+
+/* Titel "home" (tippbar → zurück) */
+.cal-title {
+  position: absolute;
+  left: 7.95%;
+  top: 16.23%;
+  z-index: 5;
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 32.878px;
+  line-height: 1;
+  color: #fff;
+  cursor: pointer;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+}
+
+/* Kopfzeile "Calibrate compass" */
+.cal-head {
+  position: absolute;
+  left: 6.15%;
+  top: 25.95%;
+  width: 87.69%;
+  height: 47px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  padding: 0 7px;
+  border-radius: 5.262px 5.262px 0 0;
+  background: rgba(25, 36, 7, 0.63);
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-style: italic;
+  font-size: 18.316px;
+  color: #fff;
+}
+/* X in der Kopfzeile (dunkles Kreuz) */
+.cal-x {
+  position: absolute;
+  left: 83.6%;
+  top: 27.4%;
+  z-index: 6;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+/* Neues Fadenkreuz — exakt bildmittig, 116px (Figma) */
+.cal-crosshair {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 116px;
+  height: 116px;
+  z-index: 4;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+}
+.cal-crosshair svg { display: block; width: 100%; height: 100%; }
+
+/* Info-Panel unten */
+.cal-info {
+  position: absolute;
+  left: 6.15%;
+  top: 79.86%;
+  width: 87.69%;
+  height: 65px;
+  z-index: 5;
+  padding: 7px 10px 0;
+  background: rgba(25, 36, 7, 0.6);
+}
+.cal-info-step {
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 10px;
+  line-height: 1.15;
+  color: #F4C247;
+}
+.cal-info-text {
+  margin-top: 3px;
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-style: italic;
+  font-size: 12px;
+  line-height: 1.25;
+  color: #fff;
+}
+
+/* Goldener Aktions-Button (unten angedockt, unten abgerundet) */
+.cal-cta {
+  position: absolute;
+  left: 6.15%;
+  top: 87.56%;
+  width: 87.69%;
+  height: 47px;
+  z-index: 5;
+  border: none;
+  border-radius: 0 0 5.26px 5.26px;
+  background: #F4C247;
+  color: #fff;
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 22px;
+  text-align: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.cal-cta:active  { filter: brightness(0.92); }
+.cal-cta:disabled { opacity: 0.5; cursor: default; }
