@@ -88,9 +88,11 @@ function cancelCalibration() {
   _calMapTap     = null;
   _calSnap       = null;
 
-  // Zurück ins Home-Untermenü
+  // Zurück ins Home-Untermenü — neu aufbauen, damit ein frisch gespeicherter
+  // Versatz sofort erscheint (nicht erst beim nächsten Öffnen).
   const h = document.getElementById('s-home');
   if (h) h.classList.add('on');
+  if (typeof renderHome === 'function') renderHome();
 }
 
 // ── SCHRITT 1: SNAP ──────────────────────
@@ -290,7 +292,7 @@ function confirmCalibration() {
 
 // ── RESET ────────────────────────────────
 function resetCalibrationOffset() {
-  if (!confirm('Kompass-Versatz wirklich zurücksetzen?')) return;
+  // Bewusst ohne Rückfrage — neu kalibrieren ist schnell gemacht.
   resetCompassOffset();
   refreshCalibrationStatus();
   if (typeof renderHome === 'function') renderHome();   // Versatz im home-Menü ausblenden

@@ -343,3 +343,27 @@
 }
 /* Kopfzeile nur oben abrunden, wenn der Versatz darunter andockt */
 .home-btn.has-body { border-radius: 5.262px 5.262px 0 0; }
+
+/* ── Debug-Knopf (rot, Figma 40:114) ──
+   Schaltet das Debug-Fenster ein/aus. Sitzt direkt rechts neben dem
+   Back-Button (left 59px); auf Screens ohne Back-Button ganz links. */
+.dbg-btn {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 10px);
+  left: 59px;
+  z-index: 6;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 2.2px;
+  background: #FF0000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.dbg-btn.dbg-left { left: 24px; }        /* Screens ohne Back-Button */
+.dbg-btn:active   { filter: brightness(0.85); }
+.dbg-btn.active   { box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85); }

@@ -50,13 +50,20 @@
   </div>
 
   <div class="splash-hint">tippen zum starten</div>
-  <div class="splash-version" id="splashVersion">v23-44</div>
+  <div class="splash-version" id="splashVersion">v23-45</div>
 </div>
 
 <!-- ══ MAIN MENU (4 Rubriken) ═════════════ -->
 <div id="s-main" class="on">
   <!-- Vollbild-Hintergrundfoto (Figma-Vorlage) -->
   <img class="hm-bg" src="assets/menu-bg.jpg" alt="">
+
+  <!-- Debug-Fenster ein/aus -->
+  <button class="dbg-btn dbg-left" onclick="toggleDebugHud()" aria-label="Debug">
+    <svg viewBox="0 0 26 26" width="26" height="26" fill="none">
+      <path d="M13 5L21.66 19.25H4.34L13 5Z" fill="white"/>
+    </svg>
+  </button>
 
   <!-- GPS-Genauigkeit oben rechts — Punkt (grün/orange) + Abweichung, ohne Rahmen -->
   <div class="hm-gps">
@@ -162,6 +169,13 @@
       <line x1="1.2" y1="8.4" x2="19.9" y2="8.4" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/>
       <line x1="1" y1="8.4" x2="7.1" y2="1"  stroke="#fff" stroke-width="1.7" stroke-linecap="round"/>
       <line x1="1" y1="8.4" x2="7.1" y2="15.8" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/>
+    </svg>
+  </button>
+
+  <!-- Debug-Fenster ein/aus -->
+  <button class="dbg-btn" onclick="toggleDebugHud()" aria-label="Debug">
+    <svg viewBox="0 0 26 26" width="26" height="26" fill="none">
+      <path d="M13 5L21.66 19.25H4.34L13 5Z" fill="white"/>
     </svg>
   </button>
 
@@ -277,6 +291,13 @@
     </svg>
   </button>
 
+  <!-- Debug-Fenster ein/aus -->
+  <button class="dbg-btn" onclick="toggleDebugHud()" aria-label="Debug">
+    <svg viewBox="0 0 26 26" width="26" height="26" fill="none">
+      <path d="M13 5L21.66 19.25H4.34L13 5Z" fill="white"/>
+    </svg>
+  </button>
+
   <div class="hm-gps">
     <span class="gps-dot" id="gpsD0c"></span>
     <span id="gpsT0c">GPS…</span>
@@ -376,6 +397,13 @@
     </svg>
   </button>
 
+  <!-- Debug-Fenster ein/aus -->
+  <button class="dbg-btn" onclick="toggleDebugHud()" aria-label="Debug">
+    <svg viewBox="0 0 26 26" width="26" height="26" fill="none">
+      <path d="M13 5L21.66 19.25H4.34L13 5Z" fill="white"/>
+    </svg>
+  </button>
+
   <!-- GPS oben rechts -->
   <div class="hm-gps">
     <span class="gps-dot" id="gpsDCal"></span>
@@ -424,6 +452,13 @@
     </svg>
   </button>
 
+  <!-- Debug-Fenster ein/aus -->
+  <button class="dbg-btn" onclick="toggleDebugHud()" aria-label="Debug">
+    <svg viewBox="0 0 26 26" width="26" height="26" fill="none">
+      <path d="M13 5L21.66 19.25H4.34L13 5Z" fill="white"/>
+    </svg>
+  </button>
+
   <div class="hm-gps">
     <span class="gps-dot" id="gpsDCalM"></span>
     <span id="gpsTCalM">GPS…</span>
@@ -458,6 +493,13 @@
       <line x1="1.2" y1="8.4" x2="19.9" y2="8.4" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/>
       <line x1="1" y1="8.4" x2="7.1" y2="1"  stroke="#fff" stroke-width="1.7" stroke-linecap="round"/>
       <line x1="1" y1="8.4" x2="7.1" y2="15.8" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/>
+    </svg>
+  </button>
+
+  <!-- Debug-Fenster ein/aus -->
+  <button class="dbg-btn" onclick="toggleDebugHud()" aria-label="Debug">
+    <svg viewBox="0 0 26 26" width="26" height="26" fill="none">
+      <path d="M13 5L21.66 19.25H4.34L13 5Z" fill="white"/>
     </svg>
   </button>
   <div class="hm-gps">

@@ -13,7 +13,7 @@
 let _tiltEMA = null;
 
 // App-Version fürs Debug-HUD. WICHTIG: zusammen mit sw.js VERSION hochzählen!
-const AR_HUD_VERSION = 'v23-44';
+const AR_HUD_VERSION = 'v23-45';
 
 // ── AR: Mark-Nav (Anschuss) ────────────────
 function renderAR() {
@@ -214,12 +214,33 @@ function ensureDebugHud() {
   return el;
 }
 
-function updateDebugHud() {
-  const sNav  = document.getElementById('s-home-nav');
-  const onArV = sNav && sNav.classList.contains('on') && !_homeMapActive;
-  const hud   = ensureDebugHud();
+// Debug-Fenster ist standardmaessig AUS und wird ueber den roten Knopf
+// (toggleDebugHud) ein-/ausgeschaltet. Solange es an ist, aktualisiert ein
+// eigener Timer die Werte — dadurch funktioniert es auf ALLEN Screens,
+// nicht nur waehrend der AR-Loop laeuft.
+let _debugVisible = false;
+let _debugTimer   = null;
 
-  if (!onArV) { hud.style.display = 'none'; return; }
+function toggleDebugHud() {
+  _debugVisible = !_debugVisible;
+  if (_debugVisible) {
+    updateDebugHud();
+    if (!_debugTimer) _debugTimer = setInterval(updateDebugHud, 400);
+  } else {
+    if (_debugTimer) { clearInterval(_debugTimer); _debugTimer = null; }
+    const hud = document.getElementById('arDebugHud');
+    if (hud) hud.style.display = 'none';
+  }
+  // Knoepfe auf allen Screens markieren (an = heller)
+  document.querySelectorAll('.dbg-btn').forEach(b => {
+    b.classList.toggle('active', _debugVisible);
+  });
+}
+
+function updateDebugHud() {
+  const hud = ensureDebugHud();
+
+  if (!_debugVisible) { hud.style.display = 'none'; return; }
   hud.style.display = 'block';
 
   const lat  = (S.lat != null) ? S.lat.toFixed(5) : '—';
