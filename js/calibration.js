@@ -293,5 +293,6 @@ function resetCalibrationOffset() {
   if (!confirm('Kompass-Versatz wirklich zurücksetzen?')) return;
   resetCompassOffset();
   refreshCalibrationStatus();
+  if (typeof renderHome === 'function') renderHome();   // Versatz im home-Menü ausblenden
   toast('Kompass-Versatz zurückgesetzt');
 }

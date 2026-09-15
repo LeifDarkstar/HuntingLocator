@@ -311,3 +311,35 @@
   flex-direction: column;
 }
 #s-mark-menu.on { display: flex; }
+
+/* ── Kompass-Versatz im home-Menü (Figma 38:2) ──
+   Erscheint nur, wenn kalibriert wurde — analog zu den gespeicherten Standorten. */
+.home-cal { display: none; }
+.home-cal-body {
+  position: absolute;
+  left: 6.15%;
+  width: 87.69%;
+  height: 58px;
+  background: rgba(25, 36, 7, 0.4);
+}
+.home-cal-val {
+  position: absolute;
+  left: 8.46%;
+  pointer-events: none;
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-style: italic;
+  font-size: 18.316px;
+  color: #F4C247;          /* Versatz in Gold/Orange */
+  white-space: nowrap;
+}
+.home-cal-lab {
+  position: absolute;
+  left: 22.05%;
+  pointer-events: none;
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-style: italic;
+  font-size: 18.316px;
+  color: #fff;
+}
+/* Kopfzeile nur oben abrunden, wenn der Versatz darunter andockt */
+.home-btn.has-body { border-radius: 5.262px 5.262px 0 0; }

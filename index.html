@@ -50,7 +50,7 @@
   </div>
 
   <div class="splash-hint">tippen zum starten</div>
-  <div class="splash-version" id="splashVersion">v23-43</div>
+  <div class="splash-version" id="splashVersion">v23-44</div>
 </div>
 
 <!-- ══ MAIN MENU (4 Rubriken) ═════════════ -->
@@ -177,7 +177,19 @@
   <!-- ── STATE: leer (nichts markiert) ── -->
   <div class="home-st st-empty">
     <button class="home-btn" style="top:25.95%;left:6.15%;width:87.69%;" onclick="openMarkChooser()">Mark your location</button>
-    <button class="home-btn" style="top:55.21%;left:6.15%;width:87.69%;" onclick="openCalibration()">Calibrate compass</button>
+    <button class="home-btn home-cal-btn" style="top:55.21%;left:6.15%;width:87.69%;" onclick="openCalibration()">Calibrate compass</button>
+    <!-- Kompass-Versatz (nur sichtbar wenn kalibriert) -->
+    <div class="home-cal">
+      <div class="home-cal-body" style="top:60.78%;"></div>
+      <span class="home-cal-val" style="top:62.80%;">—</span>
+      <span class="home-cal-lab" style="top:62.80%;">Offset</span>
+      <button class="home-x" style="top:63.74%;left:86.15%;" onclick="resetCalibrationOffset()" aria-label="Kalibrierung zuruecksetzen">
+        <svg viewBox="0 0 17 17" width="15" height="15" fill="none">
+          <line x1="1.8" y1="1" x2="16.2" y2="15.4" stroke="#192407" stroke-width="1.6" stroke-linecap="round"/>
+          <line x1="1" y1="15.4" x2="15.4" y2="1" stroke="#192407" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
   </div>
 
   <!-- ── STATE: Auswahl (Deer stand / Car markieren) ── -->
@@ -237,7 +249,19 @@
       </button>
     </div>
 
-    <button class="home-btn" style="top:55.69%;left:6.15%;width:87.69%;" onclick="openCalibration()">Calibrate compass</button>
+    <button class="home-btn home-cal-btn" style="top:55.69%;left:6.15%;width:87.69%;" onclick="openCalibration()">Calibrate compass</button>
+    <!-- Kompass-Versatz (nur sichtbar wenn kalibriert) -->
+    <div class="home-cal">
+      <div class="home-cal-body" style="top:61.26%;"></div>
+      <span class="home-cal-val" style="top:63.27%;">—</span>
+      <span class="home-cal-lab" style="top:63.27%;">Offset</span>
+      <button class="home-x" style="top:64.22%;left:86.15%;" onclick="resetCalibrationOffset()" aria-label="Kalibrierung zuruecksetzen">
+        <svg viewBox="0 0 17 17" width="15" height="15" fill="none">
+          <line x1="1.8" y1="1" x2="16.2" y2="15.4" stroke="#192407" stroke-width="1.6" stroke-linecap="round"/>
+          <line x1="1" y1="15.4" x2="15.4" y2="1" stroke="#192407" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
   </div>
 </div>
 

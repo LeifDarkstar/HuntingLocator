@@ -29,6 +29,21 @@ function renderHome() {
   if (eA) eA.style.display = hasAuto ? 'block' : 'none';
   if (dv) dv.style.display = (hasHoch && hasAuto) ? 'block' : 'none';
 
+  // Kompass-Versatz: nur zeigen, wenn schon kalibriert wurde.
+  const info   = (typeof getCompassOffsetInfo === 'function') ? getCompassOffsetInfo() : null;
+  const hasCal = !!(info && typeof info.degrees === 'number');
+  scr.querySelectorAll('.home-cal').forEach(el => {
+    el.style.display = hasCal ? 'block' : 'none';
+  });
+  scr.querySelectorAll('.home-cal-btn').forEach(el => {
+    el.classList.toggle('has-body', hasCal);
+  });
+  if (hasCal) {
+    // Deutsches Dezimalkomma wie im Design ("54,2\u00b0")
+    const txt = info.degrees.toFixed(1).replace('.', ',') + '\u00b0';
+    scr.querySelectorAll('.home-cal-val').forEach(el => { el.textContent = txt; });
+  }
+
   updateSavedDistances();
 }
 
